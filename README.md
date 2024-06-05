@@ -9,6 +9,7 @@ The code can be run on either cubic box or lightcone halo catalogues, and we als
 This directory contains scripts for generating mock catalogues
 
 * make_catalogue_snapshot_abacus.py - make an AbacusSummit cubic box mock
+* make_catalogue_snapshot_flamingo.py - make a Flamingo cubic box mock
 
 ## lookup
 
