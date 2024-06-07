@@ -98,7 +98,7 @@ if __name__ == "__main__":
         output_file = output_path+'BGS_box_%s.%03d.fits'%(photsys, input_file_number)
 
         # populate the haloes with galaxies
-        main(input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
+        main(soap_path+input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
 
     print("Joining output files into a single file...")
     # join the 34 outputs into a single file
