@@ -4,6 +4,7 @@ import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 from cosmoprimo.fiducial import AbacusSummit, DESI
 from cosmoprimo import Cosmology as Cosmology_cosmoprimo
+import yaml
 
 class Cosmology(object):
     """
@@ -256,6 +257,35 @@ class CosmologyAbacus(Cosmology):
         
         return np.array(self.__param_array[idx,2:], dtype="f")
 
+class CosmologyFlamingo(Cosmology):
+    """
+    Flamingo simulation cosmology
+
+    Args:
+        L:          Box length of the simulation (the 350 in e.g. L350N1800_DMO)
+        N:          Number of particles in the simulation (the 1800 in e.g. L350N1800_DMO)
+        simulation:  Specific version of the simulation (e.g. "DMO_FIDUCIAL", "HYDRO_STRONG_AGN")
+    """
+    def __init__(self, L, N, simulation):
+        # TODO: Get sigma8 and n_s from the initial condition parameter file (and find where it is)
+        #param_file_path = "/cosma8/data/dp004/flamingo/Runs/L" + str(L) + "N" + str(N) + "/" + simulation + "/used_parameters.yml"
+        param_file_path = "/cosma7/data/dp004/dc-mene1/flamingo_copies/L1000N1800_params.yml"
+        print("WARNING: Using incorrect path in loading cosmology")
+
+        with open(param_file_path, "r") as file:
+            run_params = yaml.safe_load(file)
+
+        h = run_params["Cosmology"]["h"]
+        Omega_cdm = run_params["Cosmology"]["Omega_cdm"]
+        Omega_b = run_params["Cosmology"]["Omega_b"]
+        #sigma8=
+        #n_s=
+        engine="class"
+
+        cosmo_cosmoprimo = Cosmology_cosmoprimo(h=h, Omega_cdm=Omega_cdm, Omega_b=Omega_b, engine=engine)
+        # TODO: Be more specific with the things put into the cosmoprimo, e.g. with neutrinos
+
+        super().__init__(cosmo_cosmoprimo)
 
 
 class CosmologyDESI(Cosmology):
