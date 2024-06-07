@@ -262,15 +262,15 @@ class CosmologyFlamingo(Cosmology):
     Flamingo simulation cosmology
 
     Args:
-        L:          Box length of the simulation (the 350 in e.g. L350N1800_DMO)
-        N:          Number of particles in the simulation (the 1800 in e.g. L350N1800_DMO)
-        simulation:  Specific version of the simulation (e.g. "DMO_FIDUCIAL", "HYDRO_STRONG_AGN")
+        path_config_filename: Path to the config file containing paths to other useful things
     """
-    def __init__(self, L, N, simulation):
+    def __init__(self, path_config_filename):
         # TODO: Get sigma8 and n_s from the initial condition parameter file (and find where it is)
         #param_file_path = "/cosma8/data/dp004/flamingo/Runs/L" + str(L) + "N" + str(N) + "/" + simulation + "/used_parameters.yml"
-        param_file_path = "/cosma7/data/dp004/dc-mene1/flamingo_copies/L1000N1800_params.yml"
-        print("WARNING: Using incorrect path in loading cosmology")
+
+        with open(path_config_filename, "r") as file:
+            path_config = yaml.safe_load(file)
+        param_file_path = path_config["params_path"]
 
         with open(param_file_path, "r") as file:
             run_params = yaml.safe_load(file)
