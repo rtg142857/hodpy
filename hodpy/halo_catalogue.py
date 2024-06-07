@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 import numpy as np
 import h5py
-from abacusnbody.data.compaso_halo_catalog import CompaSOHaloCatalog
+#from abacusnbody.data.compaso_halo_catalog import CompaSOHaloCatalog
 
 from hodpy.cosmology import CosmologyMXXL
 from hodpy.cosmology import CosmologyAbacus
@@ -410,6 +410,85 @@ class AbacusSnapshot(HaloCatalogue):
         else:
             return r200
         
+class FlamingoSnapshot(HaloCatalogue):
+    """
+    Flamingo halo catalogue from simulation snapshot
+
+    Args:
+        file_name: The path to the hdf5 file containing the halos
+        snapshot_redshift: The redshift of the snapshot
+        cosmology: Cosmology object (see cosmology.py)
+        L: Box length (the 100 in L100N180)
+        particles: use particles if True, NFW if False. Default is False; TRUE IS NOT YET SUPPORTED
+    """
+    def __init__(self, file_name, snapshot_redshift, cosmology, L,
+                 particles=False):
+        self.cosmology = cosmology
+        self.box_size = L
+
+        # read SOAP halo catalogue file
+
+        # self.so_density is not needed MAYBE; double-check
+        # What is needed:
+        # halo_cat.get("mass")
+        # halo_cat.cut
+        # halo_cat.init
+
+        halo_cat = h5py.File(file_name, "r")
+        # We use the 200_mean definition of spherical overdensity, to best match what's used by Abacus
+        # ("spherical density definition is a function of epoch; value is stored relative to the mean cosmic density")
+        self.so_density = 200
+
+        if particles:
+            print("ERROR: Particles not yet supported with Flamingo halo catalogues")
+
+        # Using the 200_mean definition, in accordance with the above
+        # pos: looking for "center of mass position of largest L2 subhalo"
+        # vel: looking for Center of mass vel of the largest L2 subhalo
+        # mass: looking for number of particles in the halo * particle mass
+        # rvmax: looking for Radius of max circular velocity, relative to the L2 center, stored as the ratio to r100 condensed to [0,30000]
+        self._quantities = {
+            'pos':   np.array(halo_cat["SO"]["200_mean"]["CentreOfMass"]),
+            'vel':   np.array(halo_cat["SO"]["200_mean"]["CentreOfMassVelocity"]),
+            'mass':  np.array(halo_cat["SO"]["200_mean"]["DarkMatterMass"]),
+            'rvmax': np.array(halo_cat["BoundSubhaloProperties"]["MaximumCircularVelocityRadius"])
+            # TODO: Check if the maximum circ velocity radius can be done via SO
+            #'r200': halo_cat["Subhalos"]["BoundR200CritComoving"]
+        }
+
+        self.size = len(self._quantities['mass'][...])
+
+        self.add("zcos", np.ones(self.size)*snapshot_redshift)
+    
+    def __read_property(self, halo_cat, prop):
+        # read property from halo file
+        #return halo_cat["Data/%s"%prop][...]
+    
+        print(prop)
+    
+        return np.array(halo_cat.halos[prop])
+    
+    def __read_header(self, halo_cat, prop):
+        print(prop)
+        return halo_cat.header[prop]
+    
+    
+    def get_r200(self, comoving=True):
+        """
+        Returns RXmean of each halo, where X is the spherical overdensity (~300 for z=0.2 snapshots)
+
+        Args:
+            comoving: (optional) if True convert to comoving distance
+        Returns:
+            array of RXmean [Mpc/h]
+        """
+        rho_mean = self.cosmology.mean_density(self.get("zcos"))
+        r200 = (3./(4*self.so_density*np.pi) * self.get("mass") / rho_mean)**(1./3)
+        
+        if comoving:
+            return r200 * (1.+self.get("zcos"))
+        else:
+            return r200
         
         
 class AbacusSnapshotUnresolved(HaloCatalogue):
