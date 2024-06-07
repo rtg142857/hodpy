@@ -1,10 +1,12 @@
 #! /usr/bin/env python
 import numpy as np
 import h5py
+import yaml
 #from abacusnbody.data.compaso_halo_catalog import CompaSOHaloCatalog
 
 from hodpy.cosmology import CosmologyMXXL
 from hodpy.cosmology import CosmologyAbacus
+from hodpy.cosmology import CosmologyFlamingo
 from hodpy.catalogue import Catalogue
 from hodpy import lookup
 
@@ -416,14 +418,18 @@ class FlamingoSnapshot(HaloCatalogue):
 
     Args:
         file_name: The path to the hdf5 file containing the halos
+        path_config_filename: The path to the path_config file saying the path to everything
         snapshot_redshift: The redshift of the snapshot
-        cosmology: Cosmology object (see cosmology.py)
-        L: Box length (the 100 in L100N180)
         particles: use particles if True, NFW if False. Default is False; TRUE IS NOT YET SUPPORTED
     """
-    def __init__(self, file_name, snapshot_redshift, cosmology, L,
+    def __init__(self, file_name, path_config_filename, snapshot_redshift,
                  particles=False):
-        self.cosmology = cosmology
+        self.cosmology = CosmologyFlamingo(path_config_filename)
+
+        with open(path_config_filename, "r") as file:
+            path_config = yaml.safe_load(file)
+
+        L = path_config["L"]
         self.box_size = L
 
         # read SOAP halo catalogue file
