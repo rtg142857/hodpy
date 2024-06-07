@@ -11,8 +11,15 @@ Paths:
   params_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/used_params.yml
 
 Params:
+  #these might need to be changed
   N: 6000
   L: 4400
   redshift: 0.0
   photsys: "S"
+  #these probably don't need to be changed
   mag_faint: -18
+  log_mass_min: -11
+  logMmin: 10.3 # Minimum mass of unresolved halo tracers for BGS or what have you
+  logMmax: 11 # Maximum mass of unresolved halo tracers; SHOULD BE CHANGED FOR FLAMINGO
+  ntracer: 3 # Number of satellite tracers for each halo
+  particles: False # use particles to position galaxy tracers if True, NFW if False; True not yet supported with Flamingo
