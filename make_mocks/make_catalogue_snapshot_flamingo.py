@@ -2,6 +2,8 @@
 from __future__ import print_function
 import numpy as np
 from astropy.table import Table, vstack
+import yaml
+import os
 
 import sys
 sys.path.append('..')
@@ -11,7 +13,7 @@ from hodpy.hod_bgs_abacus import HOD_BGS
 from hodpy.colour import ColourDESI
 from hodpy import lookup
 
-def main(input_file, output_file, cosmo, photsys, snapshot_redshift=0.2, mag_faint=-18):
+def main(input_file, output_file, path_config_filename, photsys, snapshot_redshift=0.0, mag_faint=-18):
     '''
     Create a cubic box BGS mock
     '''
@@ -23,13 +25,13 @@ def main(input_file, output_file, cosmo, photsys, snapshot_redshift=0.2, mag_fai
     replace_lookup = file_number==0
     
     # create halo catalogue
-    halo_cat = FlamingoSnapshot(input_file, cosmo=cosmo, snapshot_redshift=snapshot_redshift)
+    halo_cat = FlamingoSnapshot(input_file, path_config_filename=path_config_filename, snapshot_redshift=snapshot_redshift)
 
     # empty galaxy catalogue
-    gal_cat  = BGSGalaxyCatalogueSnapshotFlamingo(halo_cat, cosmo)
+    gal_cat  = BGSGalaxyCatalogueSnapshotFlamingo(halo_cat, path_config_filename)
 
     # use hods to populate galaxy catalogue
-    hod = HOD_BGS(cosmo, photsys=photsys, mag_faint_type='absolute', mag_faint=mag_faint, redshift_evolution=True,
+    hod = HOD_BGS(path_config_filename, photsys=photsys, mag_faint_type='absolute', mag_faint=mag_faint, redshift_evolution=True,
                   replace_central_lookup=replace_lookup, replace_satellite_lookup=replace_lookup)
     gal_cat.add_galaxies(hod)
 
@@ -51,15 +53,18 @@ def join_files(path, photsys):
     '''
     Combine the cubic box outputs into a single file
     '''
-    for file_number in range(34):
-        print(file_number)
+    output_files_list = os.listdir(path)
+    for input_file in output_files_list:
+        print(input_file)
+        input_file_number = input_file.split(".")[1]
 
-        table_i = Table.read(path+'BGS_box_%s_%03d.fits'%(photsys,file_number))
-        table_i['FILE_NUM'][:] = file_number
+        #table_i = Table.read(path+'BGS_box_%s_%03d.fits'%(photsys,file_number))
+        table_i = Table.read(input_file)
+        table_i['FILE_NUM'][:] = input_file_number
 
         #table_i = table_i['R_MAG_ABS', 'G_R_REST', 'HALO_MASS', 'cen', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'FILE_NUM', 'HALO_ID']
 
-        if file_number==0:
+        if input_file_number==0:
             table = table_i
         else:
             table = vstack([table, table_i])
@@ -71,26 +76,31 @@ def join_files(path, photsys):
     
         
 if __name__ == "__main__":
-    
-    cosmo = 0
-    phase = 0
-    snapshot_redshift = 0.2
-    photsys='S'
-    mag_faint = -18
+    path_config_filename = sys.argv[1] # Config file path
 
-    # location of the snapshots on NERSC
-    abacus_path = '/global/cfs/cdirs/desi/cosmosim/Abacus/AbacusSummit_base_c%03d_ph%03d/halos/z%.3f/'%(cosmo,phase,snapshot_redshift)
+    with open(path_config_filename, "r") as file:
+        path_config = yaml.safe_load(file)
 
-    output_path = '/pscratch/sd/a/amjsmith/AbacusSummit/secondgen_new/z%.3f/AbacusSummit_base_c%03d_ph%03d_test/'%(snapshot_redshift,cosmo,phase)
+    soap_path = path_config["soap_path"]
+    photsys = path_config["photsys"]
+    mag_faint = path_config["mag_faint"]
+    snapshot_redshift = path_config["redshift"]
+
+    # location of the snapshots
+    soap_files_list = os.listdir(soap_path)
+
+    output_path = "./output_files/"
 
     # each snapshot is split into 34 files
-    for file_number in range(34):
-        input_file = abacus_path+'halo_info/halo_info_%03d.asdf'%file_number
-        output_file = output_path+'BGS_box_%s_%03d.fits'%(photsys, file_number)
+    for input_file in soap_files_list:
+        print("Populating galaxies for snapshot "+input_file+"...")
+        input_file_number = input_file.split(".")[1]
+        output_file = output_path+'BGS_box_%s.%03d.fits'%(photsys, input_file_number)
 
         # populate the haloes with galaxies
-        main(input_file, output_file, cosmo=cosmo, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
+        main(input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
 
+    print("Joining output files into a single file...")
     # join the 34 outputs into a single file
     join_files(output_path, photsys)
 

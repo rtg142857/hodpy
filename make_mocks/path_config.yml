@@ -1,0 +1,18 @@
+---
+
+# Parameter file for running hodpy and HOD_Mock_Pipeline
+# Contains the paths to the relevant folders and such for SOAP, snapshots, etc.
+# Also includes N and L for convenience
+
+Paths:
+  soap_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/somethingsomething
+  snapshot_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/snapshots/peregrine_0133
+  lightcone_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/lightcones/lightcone0_particles/
+  params_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/used_params.yml
+
+Params:
+  N: 6000
+  L: 4400
+  redshift: 0.0
+  photsys: "S"
+  mag_faint: -18
