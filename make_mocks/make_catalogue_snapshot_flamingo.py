@@ -81,10 +81,10 @@ if __name__ == "__main__":
     with open(path_config_filename, "r") as file:
         path_config = yaml.safe_load(file)
 
-    soap_path = path_config["soap_path"]
-    photsys = path_config["photsys"]
-    mag_faint = path_config["mag_faint"]
-    snapshot_redshift = path_config["redshift"]
+    soap_path = path_config["Paths"]["soap_path"]
+    photsys = path_config["Params"]["photsys"]
+    mag_faint = path_config["Params"]["mag_faint"]
+    snapshot_redshift = path_config["Params"]["redshift"]
 
     # location of the snapshots
     soap_files_list = os.listdir(soap_path)

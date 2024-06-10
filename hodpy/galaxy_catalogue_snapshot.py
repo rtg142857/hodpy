@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 import numpy as np
 import h5py
+import yaml
 from scipy.interpolate import RegularGridInterpolator
 
-from hodpy.cosmology import CosmologyMXXL, CosmologyAbacus
+from hodpy.cosmology import CosmologyMXXL, CosmologyAbacus, CosmologyFlamingo
 from hodpy.galaxy_catalogue import GalaxyCatalogue
 
 
@@ -235,3 +236,20 @@ class BGSGalaxyCatalogueSnapshotAbacus(GalaxyCatalogueSnapshot):
         self.box_size = 2000.
         self.cosmology = CosmologyAbacus(cosmo)
 
+class BGSGalaxyCatalogueSnapshotFlamingo(GalaxyCatalogueSnapshot):
+    """
+    BGS galaxy catalogue for a simulation snapshot
+
+    Args:
+        haloes: halo catalogue
+        path_config_filename: path to the .yml file giving paths to things
+    """
+    def __init__(self, haloes, path_config_filename):
+        with open(path_config_filename, "r") as file:
+            path_config = yaml.safe_load(file)
+        
+        self._quantities = {}
+        self.size = 0
+        self.haloes = haloes
+        self.box_size = path_config["Params"]["L"]
+        self.cosmology = CosmologyFlamingo(path_config_filename)
