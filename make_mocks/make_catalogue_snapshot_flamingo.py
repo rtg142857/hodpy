@@ -9,7 +9,7 @@ import sys
 sys.path.append('..')
 from hodpy.halo_catalogue import FlamingoSnapshot
 from hodpy.galaxy_catalogue_snapshot import BGSGalaxyCatalogueSnapshotFlamingo
-from hodpy.hod_bgs_abacus import HOD_BGS
+from hodpy.hod_bgs_flamingo import HOD_BGS
 from hodpy.colour import ColourDESI
 from hodpy import lookup
 
@@ -31,7 +31,7 @@ def main(input_file, output_file, path_config_filename, photsys, snapshot_redshi
     gal_cat  = BGSGalaxyCatalogueSnapshotFlamingo(halo_cat, path_config_filename)
 
     # use hods to populate galaxy catalogue
-    hod = HOD_BGS(path_config_filename, photsys=photsys, mag_faint_type='absolute', mag_faint=mag_faint, redshift_evolution=True,
+    hod = HOD_BGS(path_config_filename, photsys=photsys, mag_faint_type='absolute', mag_faint=mag_faint, #redshift_evolution=True,
                   replace_central_lookup=replace_lookup, replace_satellite_lookup=replace_lookup)
     gal_cat.add_galaxies(hod)
 

@@ -5,10 +5,12 @@
 # Also includes N and L for convenience
 
 Paths:
-  soap_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/somethingsomething
+  soap_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/somethingsomething # folder containing SubSnap snapshot files at a certain redshift
+  soap_meta_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/somethingsomething # folder containing folders for different redshifts
   snapshot_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/snapshots/peregrine_0133
   lightcone_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/lightcones/lightcone0_particles/
   params_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/used_params.yml
+  output_list_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/output_list.txt # has the redshift of each snapshot
 
 Params:
   #these might need to be changed
@@ -16,10 +18,15 @@ Params:
   L: 4400
   redshift: 0.0
   photsys: "S"
-  #these probably don't need to be changed
+  #these probably don't need to be changed in most situations
   mag_faint: -18
+  mag_faint_type: "absolute" # Whether the faint magnitude limit is apparent or absolute; depends on whether mock is cut-sky or cubic-box
   log_mass_min: -11
   logMmin: 10.3 # Minimum mass of unresolved halo tracers for BGS or what have you
   logMmax: 11 # Maximum mass of unresolved halo tracers; SHOULD BE CHANGED FOR FLAMINGO
   ntracer: 3 # Number of satellite tracers for each halo
   particles: False # use particles to position galaxy tracers if True, NFW if False; True not yet supported with Flamingo
+  mag_faint_extrapolate: -17 #If specified, the HOD parameters Mmin and M1 will be extrapolated linearly fainter than this magnitude. Default is -17
+
+  Labels:
+    sim_label: "N6000_L4400_DMO" # just for labelling output files

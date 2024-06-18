@@ -42,6 +42,22 @@ def read_hod_param_file_abacus(hod_param_file):
     return Mmin_A, Mmin_B, Mmin_C, Mmin_D, sigma_A, sigma_B, sigma_C, sigma_D, \
            M0_A, M0_B, M1_A, M1_B, M1_C, M1_D, alpha_A, alpha_B, alpha_C
 
+def read_hod_param_file_flamingo(hod_param_file):
+    """
+    Read the HOD parameter file
+    """
+    params = np.loadtxt(hod_param_file)
+    
+    Mmin_A, Mmin_B, Mmin_C, Mmin_D, \
+    sigma_A, sigma_B, sigma_C, sigma_D, \
+    M0_A, M0_B, \
+    M1_A, M1_B, M1_C, M1_D, \
+    alpha_A, alpha_B, alpha_C = params
+    
+    return Mmin_A, Mmin_B, Mmin_C, Mmin_D, sigma_A, sigma_B, sigma_C, sigma_D, \
+           M0_A, M0_B, M1_A, M1_B, M1_C, M1_D, alpha_A, alpha_B, alpha_C
+
+
 path = get_lookup_dir()
 
 ######## Parameter values to set ##########
@@ -65,11 +81,41 @@ abacus_hod_parameters    = path+'/abacus/hod_fits_c{:03d}_ph{:03d}_wsys.txt'
 abacus_hod_slide_factors = path+'/abacus/slide_factors_c{:03d}_ph{:03d}_wsys.dat' # will be created if doesn't exist
 
 # lookup files for central/satellite magnitudes
-central_lookup_file   = path+"/abacus/central_magnitudes_c{:03d}_ph{:03d}_wsys_{}.npy"   # will be created if doesn't exist
-satellite_lookup_file = path+"/abacus/satellite_magnitudes_c{:03d}_ph{:03d}_wsys_{}.npy" # will be created if doesn't exist
+#central_lookup_file   = path+"/abacus/central_magnitudes_c{:03d}_ph{:03d}_wsys_{}.npy"   # will be created if doesn't exist
+#satellite_lookup_file = path+"/abacus/satellite_magnitudes_c{:03d}_ph{:03d}_wsys_{}.npy" # will be created if doesn't exist
 
 # Fraction of central galaxies, calculated using the HODs
-central_fraction_file = path+"/abacus/central_fraction_c{:03d}_ph{:03d}_wsys.npy" # will be created if doesn't exist
+#central_fraction_file = path+"/abacus/central_fraction_c{:03d}_ph{:03d}_wsys.npy" # will be created if doesn't exist
+
+# BGS k-corrections
+#kcorr_file_bgs = path+'/bgs/jmext_kcorr_{}_{}band_z01.dat' # for magnitudes
+#kcorr_gmr_bgs = path+'/bgs/gmr_lookup_{}_{}.hdf5'          # for g-r colours
+
+# BGS cumulative luminosity function
+# bgs_lf_target = path+'/bgs/bgs_N_cumulative_lf.dat' # measurement in the North from Sam Moore
+# bgs_lf_target = path+'/bgs/bgs_S_cumulative_lf.dat' # measurement in the South from Sam Moore
+# bgs_lf_target = path+'/bgs/bgs_target_cumulative_lf.dat' # measurements from volume limited samples (used to fit HODs). These samples are from combined North + South.
+#bgs_lf_target = path+'/bgs/bgs_samples_cumulative_lf_c{:03d}_ph{:03d}_wsys.dat' # LF predicted from best-fitting HODs - use this one to avoid changing the clustering at z=0.2
+
+# BGS g-r colour distribution fits
+#colour_fits_bgs = path+'/bgs/gmr_colour_fits_{}.hdf5'
+
+
+######### File locations for Flamingo lightcone ##########
+
+# Flamingo simulation
+flamingo_mass_function = path+"/flamingo/flamingo_mass_functions_{}.hdf5"
+
+# HOD parameters for BGS mock
+flamingo_hod_parameters    = path+'/flamingo/hod_fits_{}_wsys.txt'
+flamingo_hod_slide_factors = path+'/flamingo/slide_factors_{}_wsys.dat' # will be created if doesn't exist
+
+# lookup files for central/satellite magnitudes
+central_lookup_file   = path+"/flamingo/central_magnitudes_{}_wsys_{}.npy"   # will be created if doesn't exist
+satellite_lookup_file = path+"/flamingo/satellite_magnitudes_{}_wsys_{}.npy" # will be created if doesn't exist
+
+# Fraction of central galaxies, calculated using the HODs
+central_fraction_file = path+"/flamingo/central_fraction_{}_wsys.npy" # will be created if doesn't exist
 
 # BGS k-corrections
 kcorr_file_bgs = path+'/bgs/jmext_kcorr_{}_{}band_z01.dat' # for magnitudes
@@ -79,7 +125,7 @@ kcorr_gmr_bgs = path+'/bgs/gmr_lookup_{}_{}.hdf5'          # for g-r colours
 # bgs_lf_target = path+'/bgs/bgs_N_cumulative_lf.dat' # measurement in the North from Sam Moore
 # bgs_lf_target = path+'/bgs/bgs_S_cumulative_lf.dat' # measurement in the South from Sam Moore
 # bgs_lf_target = path+'/bgs/bgs_target_cumulative_lf.dat' # measurements from volume limited samples (used to fit HODs). These samples are from combined North + South.
-bgs_lf_target = path+'/bgs/bgs_samples_cumulative_lf_c{:03d}_ph{:03d}_wsys.dat' # LF predicted from best-fitting HODs - use this one to avoid changing the clustering at z=0.2
+bgs_lf_target = path+'/bgs/bgs_samples_cumulative_lf_{}_wsys.dat' # LF predicted from best-fitting HODs - use this one to avoid changing the clustering at z=0.2
 
 # BGS g-r colour distribution fits
 colour_fits_bgs = path+'/bgs/gmr_colour_fits_{}.hdf5'

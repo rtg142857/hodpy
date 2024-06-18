@@ -3,9 +3,10 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 from scipy.optimize import curve_fit
 import h5py
+import yaml
 
 from hodpy.power_spectrum import PowerSpectrum
-from hodpy.cosmology import CosmologyMXXL, CosmologyAbacus
+from hodpy.cosmology import CosmologyMXXL, CosmologyAbacus, CosmologyFlamingo
 from hodpy import lookup
 
 
@@ -206,6 +207,81 @@ class MassFunctionAbacus(object):
         if mf_file is None:
             # use default file specified in lookup.py
             mf_file = lookup.abacus_mass_function.format(cosmo,phase)
+        
+        self.__logM, self.__z, self.__logn = self.__read_mf_file(mf_file, num_snap=15)
+        
+        self.__mass_function_interpolator = RegularGridInterpolator((self.__logM,self.__z),
+                            self.__logn, bounds_error=False, fill_value=None)
+        
+        
+    def __read_mf_file(self, mf_file, num_snap=15):
+        # read the file of mass functions measured from the simulation
+        f = h5py.File(mf_file, 'r')
+        logM = f['0/log_mass'][...]
+        zsnap = np.zeros(num_snap)
+        logn = np.zeros((len(logM),num_snap))
+        
+        for i in range(num_snap):
+            zsnap[i] = f['%i/z'%i][...][0]
+            logn[:,i] = f['%i/log_n'%i][...]
+        f.close()
+        
+        return logM, zsnap, logn
+        
+
+    def mass_function(self, log_mass, redshift):
+        '''
+        Returns the halo mass function as a function of mass and redshift
+        (where f is defined as Eq. 4 of Jenkins 2000)
+
+        Args:
+            log_mass: array of log_10 halo mass, where halo mass is in units Msun/h
+            redshift: array of redshift
+        Returns:
+            array of halo mass function
+        '''     
+        n = self.number_density(log_mass, redshift)
+        
+        return mf * 10**log_mass / self.cosmology.mean_density(0)
+
+    
+    def number_density(self, log_mass, redshift):
+        '''
+        Returns the number density of haloes as a function of mass and redshift
+
+        Args:
+            log_mass: array of log_10 halo mass, where halo mass is in units 
+                      Msun/h
+            redshift: array of redshift
+        Returns:
+            array of halo number density in units (Mpc/h)^-3
+        '''  
+        
+        return 10**self.__mass_function_interpolator((log_mass,redshift))
+    
+class MassFunctionFlamingo(object):
+    """
+    Class containing the fits to the Flamingo halo mass function
+
+    Args:
+        path_config_fiename:   yml file containing config stuff
+    Old args:
+        cosmo:
+        [phase]: AbacusSummit phase. Default is 0.
+        [mf_file]: File containing the AbacusSummit mass function measurements.
+                   If none is provided, will read the file specified in 
+                   lookup.abacus_mass_function. Default value is None
+    """
+    def __init__(self, path_config_filename, mf_file=None):
+        with open(path_config_filename, "r") as file:
+            path_config = yaml.safe_load(file)
+        label = path_config["Labels"]["sim_label"]
+        
+        self.cosmology = CosmologyFlamingo(path_config_filename)
+        
+        if mf_file is None:
+            # use default file specified in lookup.py
+            mf_file = lookup.flamingo_mass_function.format(label)
         
         self.__logM, self.__z, self.__logn = self.__read_mf_file(mf_file, num_snap=15)
         
