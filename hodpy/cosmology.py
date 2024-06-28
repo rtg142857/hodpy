@@ -270,7 +270,7 @@ class CosmologyFlamingo(Cosmology):
 
         with open(path_config_filename, "r") as file:
             path_config = yaml.safe_load(file)
-        param_file_path = path_config["params_path"]
+        param_file_path = path_config["Paths"]["params_path"]
 
         with open(param_file_path, "r") as file:
             run_params = yaml.safe_load(file)
