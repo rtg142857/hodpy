@@ -429,7 +429,7 @@ class FlamingoSnapshot(HaloCatalogue):
         with open(path_config_filename, "r") as file:
             path_config = yaml.safe_load(file)
 
-        L = path_config["L"]
+        L = path_config["Params"]["L"]
         self.box_size = L
 
         # read SOAP halo catalogue file
