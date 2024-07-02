@@ -152,7 +152,7 @@ if __name__ == '__main__':
     redshift = path_config["Params"]["redshift"]
     
     # Output file to save the mass functions
-    mass_function_file = 'flamingo_mass_function_%s_%.2f.hdf5'%(label, redshift)
+    mass_function_file = 'flamingo_mass_function_%s.hdf5'%(label)
 
     # Measure the mass functions. By default for all snapshots z<1.0
     get_mass_functions(path_config_filename, mass_function_file)
