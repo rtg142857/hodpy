@@ -112,7 +112,7 @@ class HOD_BGS(HOD):
         # outside the range they were fitted. 
         self.mag_faint_extrapolate = path_config["Params"]["mag_faint_extrapolate"]
 
-        self.z0 = path_config["Params"]["z"] # this is the redshift that the HODs were fitted at
+        self.z0 = path_config["Params"]["redshift"] # this is the redshift that the HODs were fitted at
         self.redshift_evolution = redshift_evolution # include redshift evolution?
         photsys=path_config["Params"]["photsys"] #photometric region
         self.photsys = photsys
