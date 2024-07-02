@@ -96,9 +96,9 @@ def get_mass_functions(path_config_filename, mass_function_file, snapshot_redshi
     logn_interp = f_interp(logM_bins)
 
     f = h5py.File(mass_function_file,'a')
-    f.create_dataset('%i/z'%i, data=np.array([snapshot_redshift,]))
-    f.create_dataset('%i/log_mass'%i, data=logM_bins, compression='gzip')
-    f.create_dataset('%i/log_n'%i, data=logn_interp, compression='gzip')
+    f.create_dataset('0/z', data=np.array([snapshot_redshift,]))
+    f.create_dataset('0/log_mass', data=logM_bins, compression='gzip')
+    f.create_dataset('0/log_n', data=logn_interp, compression='gzip')
     f.close()
 
     #snapshot_list = os.listdir(soap_meta_path)
