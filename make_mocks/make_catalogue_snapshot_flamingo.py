@@ -86,21 +86,30 @@ if __name__ == "__main__":
     mag_faint = path_config["Params"]["mag_faint"]
     snapshot_redshift = path_config["Params"]["redshift"]
 
-    # location of the snapshots
-    soap_files_list = os.listdir(soap_path)
-
+    # Working with just one snapshot file, the main virtual one
+    print("Populating galaxies...")
     output_path = "./output_files/"
+    output_file = output_path + "BGS_box_%s.0.fits"%(photsys)
 
-    # each snapshot is split into 34 files
-    for input_file in soap_files_list:
-        print("Populating galaxies for snapshot "+input_file+"...")
-        input_file_number = input_file.split(".")[1]
-        output_file = output_path+'BGS_box_%s.%03d.fits'%(photsys, input_file_number)
+    # populate the halos with galaxies
+    main(soap_path, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
 
-        # populate the haloes with galaxies
-        main(soap_path+input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
 
-    print("Joining output files into a single file...")
-    # join the 34 outputs into a single file
-    join_files(output_path, photsys)
+    # # location of the snapshots
+    # soap_files_list = os.listdir(soap_path)
+
+    # output_path = "./output_files/"
+
+    # # each snapshot is split into 34 files
+    # for input_file in soap_files_list:
+    #     print("Populating galaxies for snapshot "+input_file+"...")
+    #     input_file_number = input_file.split(".")[1]
+    #     output_file = output_path+'BGS_box_%s.%03d.fits'%(photsys, input_file_number)
+
+    #     # populate the haloes with galaxies
+    #     main(soap_path+input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
+
+    # print("Joining output files into a single file...")
+    # # join the 34 outputs into a single file
+    # join_files(output_path, photsys)
 
