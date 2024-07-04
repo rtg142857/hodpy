@@ -453,11 +453,13 @@ class FlamingoSnapshot(HaloCatalogue):
         # vel: looking for Center of mass vel of the largest L2 subhalo
         # mass: looking for number of particles in the halo * particle mass
         # rvmax: looking for Radius of max circular velocity, relative to the L2 center, stored as the ratio to r100 condensed to [0,30000]
+        # id: ID of the halo (assuming they are stored in numerical order)
         self._quantities = {
             'pos':   np.array(halo_cat["SO"]["200_mean"]["CentreOfMass"]),
             'vel':   np.array(halo_cat["SO"]["200_mean"]["CentreOfMassVelocity"]),
             'mass':  np.array(halo_cat["SO"]["200_mean"]["DarkMatterMass"]),
-            'rvmax': np.array(halo_cat["BoundSubhaloProperties"]["MaximumCircularVelocityRadius"])
+            'rvmax': np.array(halo_cat["BoundSubhaloProperties"]["MaximumCircularVelocityRadius"]),
+            'id':    np.arange(len(halo_cat["SO"]["200_mean"]["DarkMatterMass"]))
             # TODO: Check if the maximum circ velocity radius can be done via SO
             #'r200': halo_cat["Subhalos"]["BoundR200CritComoving"]
         }
