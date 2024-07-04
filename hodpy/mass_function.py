@@ -283,7 +283,8 @@ class MassFunctionFlamingo(object):
             # use default file specified in lookup.py
             mf_file = lookup.flamingo_mass_function.format(label)
         
-        self.__logM, self.__z, self.__logn = self.__read_mf_file(mf_file, num_snap=15)
+        num_redshifts = path_config["Params"]["num_redshifts"]
+        self.__logM, self.__z, self.__logn = self.__read_mf_file(mf_file, num_snap=num_redshifts)
         
         self.__mass_function_interpolator = RegularGridInterpolator((self.__logM,self.__z),
                             self.__logn, bounds_error=False, fill_value=None)
