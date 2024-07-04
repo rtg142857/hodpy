@@ -2,6 +2,7 @@
 import numpy as np
 from scipy.special import erfc
 import h5py
+import yaml
 from scipy.interpolate import RegularGridInterpolator, interp1d
 
 from hodpy import lookup
@@ -254,7 +255,7 @@ class Colour(object):
     
 class ColourDESI(Colour):
     
-    def __init__(self, photsys, hod=None, central_fraction_lookup_file=None, 
+    def __init__(self, path_config_filename, photsys, hod=None, central_fraction_lookup_file=None, 
                  replace_central_fraction_lookup_file=False):
         """
         Class containing methods for randomly assigning galaxies a rest-frame g-r 
@@ -263,6 +264,7 @@ class ColourDESI(Colour):
         to be provided to calculate the fraction of central/satellite galaxies.
 
         Args:
+            path_config_filename: path to config file
             photsys: photometric region, 'N' or 'S'
             [hod]: object of class HOD
             [central_fraction_lookup_file]: Location of lookup file of central fraction. 
@@ -273,6 +275,10 @@ class ColourDESI(Colour):
                     already exists? Default is False. 
         """
         
+        with open(path_config_filename, "r") as file:
+            path_config = yaml.safe_load(file)
+        label = path_config["Labels"]["sim_label"]
+
         self.hod = hod
         self.photsys = photsys
 
@@ -294,7 +300,7 @@ class ColourDESI(Colour):
                 warnings.warn('photsys mismatch between colour and HOD', UserWarning)
             
             if central_fraction_lookup_file is None:
-                central_fraction_lookup_file = lookup.central_fraction_file.format(hod.c,0)
+                central_fraction_lookup_file = lookup.central_fraction_file.format(label)
             
             self.__central_fraction_interpolator = \
                         self.__initialize_central_fraction_interpolator(central_fraction_lookup_file, 

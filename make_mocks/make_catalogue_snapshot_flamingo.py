@@ -39,7 +39,7 @@ def main(input_file, output_file, path_config_filename, photsys, snapshot_redshi
     gal_cat.position_galaxies()
 
     # add g-r colours
-    col = ColourDESI(photsys=photsys, hod=hod)
+    col = ColourDESI(path_config_filename=path_config_filename, photsys=photsys, hod=hod)
     gal_cat.add_colours(col)
 
     # cut to galaxies brighter than absolute magnitude threshold
