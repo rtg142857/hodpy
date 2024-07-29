@@ -121,7 +121,7 @@ class PowerSpectrum(object):
         sigma = np.zeros(len(logR))
         R = 10**logR
         for i in range(len(R)):
-            sigma[i] = simps(self.__func(self.__k, R[i]), self.__k)
+            sigma[i] = simps(self.__func(self.__k, R[i]), x=self.__k)
 
         sigma = sigma / (2 * np.pi**2)
         sigma = np.sqrt(sigma)
