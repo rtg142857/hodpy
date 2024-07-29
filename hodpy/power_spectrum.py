@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import numpy as np
-from scipy.integrate import simps, quad
+from scipy.integrate import quad
+from scipy.integrate import simpson as simps
 from scipy.interpolate import splrep, splev
 from scipy.optimize import minimize
 from cosmoprimo import Fourier
