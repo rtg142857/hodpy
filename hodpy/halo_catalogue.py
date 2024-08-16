@@ -431,13 +431,13 @@ class FlamingoCatalogue(HaloCatalogue):
         L = path_config["Params"]["L"]
         self.box_size = L
 
-        # read SOAP halo catalogue file
+        used_params_filename = path_config["Paths"]["params_path"]
+        with open(used_params_filename, "r") as file:
+            used_params = yaml.safe_load(file)
+        
+        origin = used_params["Lightcone0"]["observer_position"]
 
-        # self.so_density is not needed MAYBE; double-check
-        # What is needed:
-        # halo_cat.get("mass")
-        # halo_cat.cut
-        # halo_cat.init
+        # read lightcone halo catalogue file; can't use SOAP but there are other group finders being run
 
         halo_cat = h5py.File(file_name, "r")
         # We use the 200_mean definition of spherical overdensity, to best match what's used by Abacus
@@ -447,35 +447,25 @@ class FlamingoCatalogue(HaloCatalogue):
         if particles:
             print("ERROR: Particles not yet supported with Flamingo halo catalogues")
 
-        # Using the 200_mean definition, in accordance with the above
-        # pos: looking for "center of mass position of largest L2 subhalo"
-        # vel: looking for Center of mass vel of the largest L2 subhalo
-        # mass: looking for number of particles in the halo * particle mass
-        # rvmax: looking for Radius of max circular velocity, relative to the L2 center, stored as the ratio to r100 condensed to [0,30000]
-        # id: ID of the halo (assuming they are stored in numerical order)
+        halos_pos = np.array(halo_cat["SO"]["200_mean"]["CentreOfMass"])-origin                       # set the origin at [0,0,0]
+                
+        # get ra, dec coordinates and redshifts
+        ra,dec,z_cos = self.pos3d_to_equatorial(halos_pos)  # check if redshift agree with redshift_interp
+                
+        v_los = self.vel_to_vlos(halos_pos, np.array(halo_cat["SO"]["200_mean"]["CentreOfMassVelocity"]))
+        z_obs = self.vel_to_zobs(z_cos, v_los)
+
         self._quantities = {
-            'pos':   np.array(halo_cat["SO"]["200_mean"]["CentreOfMass"]),
-            'vel':   np.array(halo_cat["SO"]["200_mean"]["CentreOfMassVelocity"]),
+            'ra':    ra,
+            'dec':   dec,
             'mass':  np.array(halo_cat["SO"]["200_mean"]["DarkMatterMass"]),
+            'zobs':  z_obs,
+            'zcos':  z_cos,
             'rvmax': np.array(halo_cat["BoundSubhaloProperties"]["MaximumCircularVelocityRadius"]),
             'id':    np.arange(len(halo_cat["SO"]["200_mean"]["DarkMatterMass"]))
-            # TODO: Check if the maximum circ velocity radius can be done via SO
-            #'r200': halo_cat["Subhalos"]["BoundR200CritComoving"]
         }
 
-        # TODO: MAKE:
-        #         self._quantities = {
-        #     'ra':    ra,
-        #     'dec':   dec,
-        #     'mass':  halo_mass * 1e10,
-        #     'zobs':  z_obs,
-        #     'zcos':  z_cos,
-        #     'rvmax': halos['rvcirc_max_L2com']
-        # }
-
         self.size = len(self._quantities['mass'][...])
-
-        self.add("zcos", np.ones(self.size)*snapshot_redshift)
     
     def __read_property(self, halo_cat, prop):
         # read property from halo file
