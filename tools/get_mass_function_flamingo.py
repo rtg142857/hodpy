@@ -94,9 +94,10 @@ def get_mass_functions(path_config_filename, mass_function_file, snapshot_redshi
     with open(path_config_filename, "r") as file:
         path_config = yaml.safe_load(file)
     soap_meta_path = path_config["Paths"]["soap_meta_path"]
-    output_list_path = path_config["Paths"]["output_list_path"]
+    output_list_path = path_config["Paths"]["output_list_path"] # file with list of redshifts
 
     snapshot_list = os.listdir(soap_meta_path)
+    snapshot_list = [filename for filename in snapshot_list if filename.endswith(".hdf5")]
     snapshot_redshifts = np.genfromtxt(output_list_path, comments="#")
 
     if len(snapshot_list) != len(snapshot_redshifts):

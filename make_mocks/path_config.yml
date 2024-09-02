@@ -5,22 +5,23 @@
 # Also includes N and L for convenience
 
 Paths:
-  soap_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/somethingsomething # folder containing SubSnap snapshot files at a certain redshift
-  soap_meta_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/somethingsomething # folder containing folders for different redshifts
-  snapshot_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/snapshots/peregrine_0133
-  lightcone_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/lightcones/lightcone0_particles/
-  params_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/used_params.yml
-  output_list_path: /cosma8/data/dp004/dc-elbe1/peregrinus/runs/DESIY1_M060_L4400_N6000_NU3000/output_list.txt # has the redshift of each snapshot
+  soap_path: /cosma8/data/dp004/flamingo/Runs/L1000N1800/HYDRO_FIDUCIAL/SOAP-HBT/halo_properties_0073.hdf5 # SOAP output file at a certain redshift
+  soap_meta_path: /cosma8/data/dp004/flamingo/Runs/L1000N1800/HYDRO_FIDUCIAL/SOAP-HBT/ # folder containing folders for different redshifts
+  snapshot_path: /cosma8/data/dp004/flamingo/Runs/L1000N1800/HYDRO_FIDUCIAL/snapshots/flamingo_0073/flamingo_0073.hdf5
+  lightcone_path: /cosma8/data/dp004/dc-elbe1/FLAMINGO/halo_lightcones/L1000N1800/HYDRO_FIDUCIAL/halo_lightcone.hdf5
+  params_path: /cosma8/data/dp004/flamingo/Runs/L1000N1800/HYDRO_FIDUCIAL/used_parameters.yml
+  output_list_path: /cosma8/data/dp004/flamingo/Runs/L1000N1800/HYDRO_FIDUCIAL/output_list.txt # has the redshift of each snapshot
 
 Params:
   #these might need to be changed
-  N: 6000
-  L: 4400
-  redshift: 0.0
+  N: 1800
+  L: 1000
+  redshift: 0.2
   photsys: "S"
+  #num_redshifts: 1 # Number of redshifts for which the mass function is measured
+  mag_faint: 20.0
+  mag_faint_type: "apparent" # Whether the faint magnitude limit is apparent or absolute; depends on whether mock is cut-sky or cubic-box
   #these probably don't need to be changed in most situations
-  mag_faint: -18
-  mag_faint_type: "absolute" # Whether the faint magnitude limit is apparent or absolute; depends on whether mock is cut-sky or cubic-box
   log_mass_min: -11
   logMmin: 10.3 # Minimum mass of unresolved halo tracers for BGS or what have you
   logMmax: 11 # Maximum mass of unresolved halo tracers; SHOULD BE CHANGED FOR FLAMINGO
@@ -28,5 +29,8 @@ Params:
   particles: False # use particles to position galaxy tracers if True, NFW if False; True not yet supported with Flamingo
   mag_faint_extrapolate: -17 #If specified, the HOD parameters Mmin and M1 will be extrapolated linearly fainter than this magnitude. Default is -17
 
-  Labels:
-    sim_label: "N6000_L4400_DMO" # just for labelling output files
+Misc:
+  random_seed: 1
+
+Labels:
+  sim_label: "L1000N1800_HYDRO" # just for labelling output files

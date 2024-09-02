@@ -17,12 +17,12 @@ from hodpy.power_spectrum import PowerSpectrum
 #from abacusnbody.data.read_abacus import read_asdf
 
 
-def measure_mass_function_box(path_config_filename, bin_size=0.01):
+def measure_mass_function_box(path_config_filename, soap_path, bin_size=0.01):
     """
     Measure the halo mass function of the cubic box
     Args:
         path_config_filename: yml file containing paths to simulation
-        snapshot_file: Path to SOAP halo file
+        soap_path: Path to SOAP halo file
         [bin_size]: 0.01 by default
     Returns:
         Array of halo mass bin centres, in log10(mass)
@@ -30,7 +30,6 @@ def measure_mass_function_box(path_config_filename, bin_size=0.01):
     """
     with open(path_config_filename, "r") as file:
         path_config = yaml.safe_load(file)
-    soap_path = path_config["Paths"]["soap_path"]
     L = path_config["Params"]["L"]
 
 
@@ -69,7 +68,7 @@ def get_mass_functions(path_config_filename, mass_function_file, snapshot_redshi
 
 
     print("z = %.3f"%snapshot_redshift)
-    logM, n = measure_mass_function_box(path_config_filename, bin_size=0.01)
+    logM, n = measure_mass_function_box(path_config_filename, soap_path, bin_size=0.01)
 
     cosmology = CosmologyFlamingo(path_config_filename)
 
