@@ -49,17 +49,17 @@ def main(input_file, output_file, path_config_filename, photsys, snapshot_redshi
     gal_cat.save_to_file(output_file, format="fits_BGS")
     
     
-def join_files(path, photsys):
+def join_files(output_path, photsys):
     '''
     Combine the cubic box outputs into a single file
     '''
-    output_files_list = os.listdir(path)
+    output_files_list = os.listdir(output_path)
     for input_file in output_files_list:
         print(input_file)
         input_file_number = input_file.split(".")[1]
 
         #table_i = Table.read(path+'BGS_box_%s_%03d.fits'%(photsys,file_number))
-        table_i = Table.read(input_file)
+        table_i = Table.read(output_path + input_file)
         table_i['FILE_NUM'][:] = input_file_number
 
         #table_i = table_i['R_MAG_ABS', 'G_R_REST', 'HALO_MASS', 'cen', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'FILE_NUM', 'HALO_ID']
