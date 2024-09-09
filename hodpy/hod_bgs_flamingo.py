@@ -30,8 +30,7 @@ class HOD_BGS(HOD):
         NO PHOTSYS
         NO MAG_FAINT_EXTRAPOLATE
         NO z0
-        NO MAG_FAINT
-        NO MAG_FAINT_TYPE
+        [path_config_filename]: Location of config file with useful run parameters
         [hod_param_file]: Location of file which contains HOD parameters. If no value is 
                         provided, the file defined in lookup.abacus_hod_parameters
                         will be read. Default value is None.
@@ -59,6 +58,11 @@ class HOD_BGS(HOD):
         [replace_central_lookup]: Replace central_lookup_file if it already exists? Default is False
         [replace_satellite_lookup]: Replace satellite_lookup_file if it already exists? Default is False
         [replace_slide_file]: Replace slide_file if it already exists? Default is False
+        [mag_faint_type]: Set whether the faint magnitude limit mag_faint is an apparent or absolute magnitude.
+                        Use either 'apparent' or 'absolute'. Default is None. By default set in path_config;
+                        using this argument OVERRIDES path_config.
+        [mag_faint]:    Faint magnitude limit. Default is none. By defualt set in path_config; using this
+                        argument OVERRIDES path_config.
     old_args:
         cosmo:          AbacusSummit cosmology number, e.g. 0 for cosmology `c000'
         photsys:        Photometric region, 'N' or 'S'
@@ -103,7 +107,7 @@ class HOD_BGS(HOD):
                  slide_file=None, central_lookup_file=None, 
                  satellite_lookup_file=None, target_lf_file=None,
                  replace_central_lookup=False, replace_satellite_lookup=False,
-                 replace_slide_file=False):
+                 replace_slide_file=False, mag_faint_type=None, mag_faint=None):
         with open(path_config_filename, "r") as file:
             path_config = yaml.safe_load(file)
         
@@ -118,8 +122,12 @@ class HOD_BGS(HOD):
         self.photsys = photsys
         
         # faintest apparent or absolute magnitude we are populating galaxies to
-        self.mag_faint = path_config["Params"]["mag_faint"]
-        mag_faint_type = path_config["Params"]["mag_faint_type"]
+        if mag_faint == None:
+            self.mag_faint = path_config["Params"]["mag_faint"]
+        else:
+            self.mag_faint = mag_faint
+        if mag_faint_type == None:
+            mag_faint_type = path_config["Params"]["mag_faint_type"]
 
         # Label describing the simulation
         label = path_config["Labels"]["sim_label"]
@@ -144,12 +152,11 @@ class HOD_BGS(HOD):
         
         # initialize target luminosity function
         # this is needed to calculate 'slide factors' to evolve the HOD
+        # Create this using update_lookup_files_for_new_hod_flamingo.py in tools
         # BGS LF is already E-corrected, so set evolution parameters P = Q = 0
-        # TODO: CHANGE
         if self.redshift_evolution:
-            raise Exception("Redshift evolution not implemented yet; see update_lookup_files_for_new_hod.py to make the proper lookup thing")
             if target_lf_file is None:
-                target_lf_file = lookup.bgs_lf_target.format(cosmo,0)
+                target_lf_file = lookup.bgs_lf_target.format(label)
             self.lf = LuminosityFunctionTabulated(target_lf_file, P=0, Q=0) 
             
         # initialize k-corrections. Use default DESI BGS k-corrections if none provided
@@ -168,7 +175,6 @@ class HOD_BGS(HOD):
         # if redshift evolution is being done, initialize the `slide factors'
         # this will be read from a file if it already exists
         # if not, they will be calculated - this is slow!
-        # TODO: Change
         if self.redshift_evolution:
             if slide_file is None:
                 print("Calculating slide factors for redshift evolution...")
@@ -179,7 +185,6 @@ class HOD_BGS(HOD):
         # initialize the lookup tables to get magnitudes for central and 
         # satellite galaxies. These files are created if they don't exist, or 
         # if replace_central_lookup and replace_satellite_lookup are set to True
-        # TODO: Change
         if central_lookup_file is None:
             print("Making central lookup file...")
             central_lookup_file = lookup.central_lookup_file.format(label,photsys)
