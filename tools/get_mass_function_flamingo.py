@@ -30,7 +30,7 @@ def measure_mass_function_box(path_config_filename, snapshot_folder, bin_size=0.
     """
     with open(path_config_filename, "r") as file:
         path_config = yaml.safe_load(file)
-    soap_meta_path = path_config["Params"]["soap_meta_path"]
+    soap_meta_path = path_config["Paths"]["soap_meta_path"]
     soap_path = soap_meta_path + snapshot_folder
     L = path_config["Params"]["L"]
 
