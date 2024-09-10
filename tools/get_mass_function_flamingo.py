@@ -112,6 +112,8 @@ def get_mass_functions(path_config_filename, mass_function_file, snapshot_redshi
     #for snapshot_redshift in redshifts:
     for i in range(len(snapshot_list)):
         snapshot_redshift = snapshot_redshifts[i]
+        if snapshot_redshift > 7.0:
+            continue
 
         print("z = %.3f"%snapshot_redshift)
         #logM, n = measure_mass_function_box(path_config_filename, snapshot_folder=snapshot_list[i], bin_size=0.01)
