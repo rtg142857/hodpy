@@ -19,6 +19,7 @@ Params:
   redshift: 0.2
   photsys: "S"
   #num_redshifts: 1 # Number of redshifts for which the mass function is measured
+  max_redshift: 7.0 # Highest redshift for which the mass function is measured (if it's measured before halos exist, things break)
   mag_faint: 20.0
   mag_faint_type: "apparent" # Whether the faint magnitude limit is apparent or absolute; depends on whether mock is cut-sky or cubic-box
   #these probably don't need to be changed in most situations

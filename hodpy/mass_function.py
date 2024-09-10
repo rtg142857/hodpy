@@ -276,6 +276,12 @@ class MassFunctionFlamingo(object):
         with open(path_config_filename, "r") as file:
             path_config = yaml.safe_load(file)
         label = path_config["Labels"]["sim_label"]
+
+        output_list_path = path_config["Paths"]["output_list_path"] # file with list of redshifts
+        max_redshift = path_config["Params"]["max_redshift"]
+        snapshot_redshifts = np.genfromtxt(output_list_path, comments="#")
+        snapshot_redshifts = snapshot_redshifts[snapshot_redshifts <= max_redshift]
+        num_redshifts = len(snapshot_redshifts)
         
         self.cosmology = CosmologyFlamingo(path_config_filename)
         
@@ -283,7 +289,7 @@ class MassFunctionFlamingo(object):
             # use default file specified in lookup.py
             mf_file = lookup.flamingo_mass_function.format(label)
         
-        num_redshifts = path_config["Params"]["num_redshifts"]
+        #num_redshifts = path_config["Params"]["num_redshifts"]
         self.__logM, self.__z, self.__logn = self.__read_mf_file(mf_file, num_snap=num_redshifts)
         
         self.__mass_function_interpolator = RegularGridInterpolator((self.__logM,self.__z),
