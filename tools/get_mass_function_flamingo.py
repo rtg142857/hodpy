@@ -126,6 +126,7 @@ def get_mass_functions(path_config_filename, mass_function_file, snapshot_redshi
 
         # get fit to mass function
         fit_params = mf.get_fit()
+        print("Fit parameters: "+str(fit_params))
 
         # take ratio of measured mass function to the fit, and smooth
         # smooth the ratio since it covers a smaller dynamic range
