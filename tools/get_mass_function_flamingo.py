@@ -17,12 +17,13 @@ from hodpy.power_spectrum import PowerSpectrum
 #from abacusnbody.data.read_abacus import read_asdf
 
 
-def measure_mass_function_box(path_config_filename, snapshot_folder, bin_size=0.01):
+def measure_mass_function_box(path_config_filename, snapshot, bin_size=0.01):
     """
     Measure the halo mass function of the cubic box
     Args:
         path_config_filename: yml file containing paths to simulation
-        snapshot_folder: directory name within the soap_meta_path containing the soap files for a given redshift
+        snapshot: soap file for a given redshift
+        #snapshot_folder: directory name within the soap_meta_path containing the soap files for a given redshift
         [bin_size]: 0.01 by default
     Returns:
         Array of halo mass bin centres, in log10(mass)
@@ -31,7 +32,8 @@ def measure_mass_function_box(path_config_filename, snapshot_folder, bin_size=0.
     with open(path_config_filename, "r") as file:
         path_config = yaml.safe_load(file)
     soap_meta_path = path_config["Paths"]["soap_meta_path"]
-    soap_path = soap_meta_path + snapshot_folder
+    #soap_path = soap_meta_path + snapshot_folder
+    soap_path = soap_meta_path + snapshot
     L = path_config["Params"]["L"]
 
     # initialize Flamingo cosmology
@@ -43,18 +45,23 @@ def measure_mass_function_box(path_config_filename, snapshot_folder, bin_size=0.
     #input_file = abacus_path+mock+"/halos/z%.3f/halo_info/halo_info_%03d.asdf"
 
     # location of the snapshots
-    soap_files_list = os.listdir(soap_path)
-    log_mass = [None]*len(soap_files_list)
-    for file_name in soap_files_list:
-        file_number = file_name.split(".")[1]
-        print("Reading files ({}%)".format(int(100*file_number/len(soap_files_list))), end='\r')
-        input_file = soap_path + file_name
+    #soap_files_list = os.listdir(soap_path)
+    #log_mass = [None]*len(soap_files_list)
+    # for file_name in soap_files_list:
+    #     file_number = file_name.split(".")[1]
+    #     print("Reading files ({}%)".format(int(100*file_number/len(soap_files_list))), end='\r')
+    #     input_file = soap_path + file_name
 
-        halo_cat = h5py.File(input_file, "r")
-        halo_mass = np.array(halo_cat["SO"]["200_mean"]["DarkMatterMass"])
-        log_mass[file_number] = np.log10(halo_mass[halo_mass>0])
+    #     halo_cat = h5py.File(input_file, "r")
+    #     halo_mass = np.array(halo_cat["SO"]["200_mean"]["DarkMatterMass"])
+    #     log_mass[file_number] = np.log10(halo_mass[halo_mass>0])
         
         #print(file_number, len(log_mass[file_number]))
+
+    print("Reading halo file...")
+    halo_cat = h5py.File(soap_path, "r")
+    halo_mass = np.array(halo_cat["SO"]["200_mean"]["DarkMatterMass"])*1e10
+    log_mass = np.log10(halo_mass[halo_mass>0])
 
     # log_mass = [None]*Nfiles
     
@@ -70,7 +77,7 @@ def measure_mass_function_box(path_config_filename, snapshot_folder, bin_size=0.
     print("Reading files (100%)")
     print("Getting mass function")
     
-    log_mass = np.concatenate(log_mass)
+    #log_mass = np.concatenate(log_mass)
 
     # get number densities in mass bins  
     mass_bins = np.arange(10,16,bin_size)
@@ -107,7 +114,8 @@ def get_mass_functions(path_config_filename, mass_function_file, snapshot_redshi
         snapshot_redshift = snapshot_redshifts[i]
 
         print("z = %.3f"%snapshot_redshift)
-        logM, n = measure_mass_function_box(path_config_filename, snapshot_folder=snapshot_list[i], bin_size=0.01)
+        #logM, n = measure_mass_function_box(path_config_filename, snapshot_folder=snapshot_list[i], bin_size=0.01)
+        logM, n = measure_mass_function_box(path_config_filename, snapshot=snapshot_list[i], bin_size=0.01)
 
         cosmology = CosmologyFlamingo(path_config_filename)
 
