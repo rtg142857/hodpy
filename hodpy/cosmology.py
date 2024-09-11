@@ -282,7 +282,41 @@ class CosmologyFlamingo(Cosmology):
         #n_s=
         engine="class"
 
-        cosmo_cosmoprimo = Cosmology_cosmoprimo(h=h, Omega_cdm=Omega_cdm, Omega_b=Omega_b, engine=engine)
+        try:
+            w_a = run_params["Cosmology"]["w_a"]
+        except:
+            w_a = None
+
+        try:
+            N_ur = run_params["Cosmology"]["N_ur"]
+        except:
+            N_ur = None
+
+        try:
+            N_nu = run_params["Cosmology"]["N_nu"]
+        except:
+            N_nu = None
+
+        try:
+            w_0 = run_params["Cosmology"]["w_0"]
+        except:
+            w_0 = None
+
+        try:
+            w_a = run_params["Cosmology"]["w_a"]
+        except:
+            w_a = None
+
+        try:
+            M_nu_eV = run_params["Cosmology"]["M_nu_eV"]
+        except:
+            M_nu_eV = None
+
+        
+
+        cosmo_cosmoprimo = Cosmology_cosmoprimo(h=h, Omega_cdm=Omega_cdm, Omega_b=Omega_b, engine=engine,
+                                                N_ur=N_ur, N_nu=N_nu, w_0=w_0, w_a=w_a,
+                                                M_nu_eV=M_nu_eV)
         # TODO: Be more specific with the things put into the cosmoprimo, e.g. with neutrinos
 
         super().__init__(cosmo_cosmoprimo)
