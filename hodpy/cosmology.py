@@ -2,9 +2,11 @@
 import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
-from cosmoprimo.fiducial import AbacusSummit, DESI
+from cosmoprimo.fiducial import AbacusSummit
 from cosmoprimo import Cosmology as Cosmology_cosmoprimo
 import yaml
+import configparser
+
 
 class Cosmology(object):
     """
@@ -271,63 +273,51 @@ class CosmologyFlamingo(Cosmology):
         with open(path_config_filename, "r") as file:
             path_config = yaml.safe_load(file)
         param_file_path = path_config["Paths"]["params_path"]
+        ic_file_path = path_config["Paths"]["ics_path"]
 
         with open(param_file_path, "r") as file:
             run_params = yaml.safe_load(file)
+        
+        config = configparser.ConfigParser()
+        config.read_file(open(ic_file_path))
+
 
         h = run_params["Cosmology"]["h"]
         Omega_cdm = run_params["Cosmology"]["Omega_cdm"]
         Omega_b = run_params["Cosmology"]["Omega_b"]
-        #sigma8=
-        #n_s=
+
         engine="class"
 
         try:
-            w_a = run_params["Cosmology"]["w_a"]
+            n_s = float(config.get("cosmology", "n_s"))
         except:
-            w_a = None
+            n_s = None
 
         try:
-            N_ur = run_params["Cosmology"]["N_ur"]
+            A_s = float(config.get("cosmology", "A_s"))
         except:
-            N_ur = None
+            A_s = None
 
         try:
-            N_nu = run_params["Cosmology"]["N_nu"]
+            w0_fld = run_params["Cosmology"]["w_0"]
         except:
-            N_nu = None
+            w0_fld = None
 
         try:
-            w_0 = run_params["Cosmology"]["w_0"]
+            wa_fld = run_params["Cosmology"]["w_a"]
         except:
-            w_0 = None
-
-        try:
-            w_a = run_params["Cosmology"]["w_a"]
-        except:
-            w_a = None
+            wa_fld = None
 
         try:
             M_nu_eV = run_params["Cosmology"]["M_nu_eV"]
+            M_nu_list = M_nu_eV.split(",")
+            N_ncdm = [float(i) for i in M_nu_list]
         except:
-            M_nu_eV = None
-
-        
+            N_ncdm = None
 
         cosmo_cosmoprimo = Cosmology_cosmoprimo(h=h, Omega_cdm=Omega_cdm, Omega_b=Omega_b, engine=engine,
-                                                N_ur=N_ur, N_nu=N_nu, w_0=w_0, w_a=w_a,
-                                                M_nu_eV=M_nu_eV)
-        # TODO: Be more specific with the things put into the cosmoprimo, e.g. with neutrinos
+                                                n_s = n_s, A_s = A_s,
+                                                w0_fld=w0_fld, wa_fld=wa_fld,
+                                                N_ncdm = N_ncdm)
 
-        super().__init__(cosmo_cosmoprimo)
-
-
-class CosmologyDESI(Cosmology):
-    """
-    DESI Survey fiducial cosmology
-    """
-    def __init__(self):
-        
-        cosmo_cosmoprimo = DESI()
-        
         super().__init__(cosmo_cosmoprimo)
