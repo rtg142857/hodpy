@@ -81,18 +81,46 @@ if __name__ == "__main__":
     with open(path_config_filename, "r") as file:
         path_config = yaml.safe_load(file)
 
+    try:
+        halo_type = path_config["Misc"]["halo_type"]
+    except:
+        halo_type = "soap"
+
     soap_path = path_config["Paths"]["soap_path"]
     photsys = path_config["Params"]["photsys"]
     mag_faint = path_config["Params"]["mag_faint"]
     snapshot_redshift = path_config["Params"]["redshift"]
+    label = path_config["Labels"]["sim_label"]
+
+    print("Populating galaxies...")
+    output_directory = "output_files_" + label
+    if not os.path.isdir(output_directory):
+        os.makedirs(output_directory)
+    output_path = "./"+output_directory+"/"
+
+    if soap_path[-5:] == ".hdf5": # Just one input soap file
+        output_file = output_path + "_BGS_box_%s.0.fits"%(photsys)
+        main(soap_path, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
+
+    else: # input soap directory
+        soap_files_list = os.listdir(soap_path)
+        if halo_type == "peregrinus":
+            soap_files_list = [file for file in soap_files_list if "Catalogue" in file]
+        
+        for file_name in soap_files_list:
+            input_file = soap_path + file_name
+            file_number = int(file_name.split(".")[1])
+            print("Populating galaxies for snapshot "+str(file_number), flush=True)
+            output_file = output_path + "_BGS_box_%s.%03d.fits"%(photsys, file_number)
+
+            main(input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
+
+        print("Joining output files into a single file...")
+        # join the outputs into a single file
+        join_files(output_path, photsys)
+
 
     # Working with just one snapshot file, the main virtual one
-    print("Populating galaxies...")
-    output_path = "./output_files/"
-    output_file = output_path + "BGS_box_%s.0.fits"%(photsys)
-
-    # populate the halos with galaxies
-    main(soap_path, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
 
 
     # # location of the snapshots
