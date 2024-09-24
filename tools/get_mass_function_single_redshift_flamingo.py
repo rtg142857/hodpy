@@ -6,6 +6,7 @@ from scipy.interpolate import interp1d
 import h5py
 import yaml
 import os
+from read_hdf5 import read_hbt_log_mass, read_soap_log_mass
 
 import sys
 sys.path.append('..')
@@ -31,13 +32,56 @@ def measure_mass_function_box(path_config_filename, soap_path, bin_size=0.01):
     with open(path_config_filename, "r") as file:
         path_config = yaml.safe_load(file)
     L = path_config["Params"]["L"]
+    try:
+        halo_type = path_config["Misc"]["halo_type"]
+    except:
+        halo_type = "soap"
+    with open(path_config["Paths"]["params_path"], "r") as file:
+        used_params = yaml.safe_load(file)
+    UnitMass_in_cgs = float(used_params["InternalUnitSystem"]["UnitMass_in_cgs"])
 
+    #########################################
 
-    print("Reading file:")
+    print("Reading log mass from file...", flush=True)
+    if soap_path[-5:] == ".hdf5": # if the soap path is a single file
 
-    halo_cat = h5py.File(soap_path, "r")
-    halo_mass = np.array(halo_cat["SO"]["200_mean"]["DarkMatterMass"])
-    log_mass = np.log10(halo_mass[halo_mass>0])
+        input_file = soap_path
+        if halo_type == "peregrinus":
+            log_mass = read_hbt_log_mass(input_file, UnitMass_in_cgs)
+        else:
+            log_mass = read_soap_log_mass(input_file, UnitMass_in_cgs)
+        
+        print("Read log mass from file", flush=True)
+
+    else: # if it's a directory
+    # location of the snapshots
+        soap_files_list = os.listdir(soap_path)
+        if halo_type == "peregrinus":
+            soap_files_list = [file for file in soap_files_list if "Catalogue" in file]
+
+        # loop through all files, reading in halo masses
+        log_mass = [None]*len(soap_files_list)
+        for file_name in soap_files_list:
+            #input_file = file_name%(redshift, file_number)
+            file_number = int(file_name.split(".")[1])
+            print("Reading log mass from file "+file_number, flush=True)
+            input_file = soap_path + file_name
+
+            if halo_type == "peregrinus":
+                log_mass[file_number] = read_hbt_log_mass(input_file, UnitMass_in_cgs)
+            else:
+                log_mass[file_number] = read_soap_log_mass(input_file, UnitMass_in_cgs)
+
+            #halo_cat = CompaSOHaloCatalog(input_file, cleaned=True, fields=['N'])
+            #m_par = halo_cat.header["ParticleMassHMsun"]
+            #log_mass[file_number] = np.log10(np.array(halo_cat.halos["N"])*m_par)
+            
+            print(file_number, len(log_mass[file_number]))
+
+        log_mass = np.concatenate(log_mass)
+        print("Read log mass from files", flush=True)
+
+    #########################################
 
     print("Getting mass function")
 
