@@ -64,7 +64,7 @@ def measure_mass_function_box(path_config_filename, soap_path, bin_size=0.01):
         for file_name in soap_files_list:
             #input_file = file_name%(redshift, file_number)
             file_number = int(file_name.split(".")[1])
-            print("Reading log mass from file "+file_number, flush=True)
+            print("Reading log mass from file "+str(file_number), flush=True)
             input_file = soap_path + file_name
 
             if halo_type == "peregrinus":
