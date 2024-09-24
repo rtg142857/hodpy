@@ -21,7 +21,7 @@ def main(input_file, output_file, path_config_filename, photsys, snapshot_redshi
     warnings.filterwarnings("ignore")
     
     # to be safe, re-make the magnitude lookup tables on first loop iteration
-    file_number = int(input_file[-8:-5])
+    file_number = int(input_file.split(".")[1])
     replace_lookup = file_number==0
     
     # create halo catalogue
