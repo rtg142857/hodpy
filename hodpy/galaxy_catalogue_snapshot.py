@@ -247,9 +247,13 @@ class BGSGalaxyCatalogueSnapshotFlamingo(GalaxyCatalogueSnapshot):
     def __init__(self, haloes, path_config_filename):
         with open(path_config_filename, "r") as file:
             path_config = yaml.safe_load(file)
+        with open(path_config["Paths"]["params_path"], "r") as file:
+            run_params = yaml.safe_load(file)
+        h = run_params["Cosmology"]["h"]
+        L = path_config["Params"]["L"] * h
         
         self._quantities = {}
         self.size = 0
         self.haloes = haloes
-        self.box_size = path_config["Params"]["L"]
+        self.box_size = path_config["Params"]["L"] * h
         self.cosmology = CosmologyFlamingo(path_config_filename)

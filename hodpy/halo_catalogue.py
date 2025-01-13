@@ -2,6 +2,8 @@
 import numpy as np
 import h5py
 import yaml
+from scipy.interpolate import interp1d
+from scipy.stats import skewnorm
 #from abacusnbody.data.compaso_halo_catalog import CompaSOHaloCatalog
 
 from hodpy.cosmology import CosmologyMXXL
@@ -9,6 +11,10 @@ from hodpy.cosmology import CosmologyAbacus
 from hodpy.cosmology import CosmologyFlamingo
 from hodpy.catalogue import Catalogue
 from hodpy import lookup
+
+from colossus.cosmology import cosmology as colossusCosmology
+colossusCosmology.setCosmology('planck18')
+from colossus.halo import mass_defs
 
 
 class HaloCatalogue(Catalogue):
@@ -34,22 +40,28 @@ class HaloCatalogue(Catalogue):
             return self.get_concentration()
         elif prop == "mod_conc":
             return self.get_modified_concentration()
+        elif prop == "conc_rs":
+            return self.get_concentration_rs()
         
         # property directly stored
         return self._quantities[prop]
 
 
-    def get_r200(self, comoving=True):
+    def get_r200(self, comoving=True, rho_type="mean"):
         """
-        Returns R200mean of each halo
+        Returns R200 of each halo
 
         Args:
             comoving: (optional) if True convert to comoving distance
+            rho_type: (optional) "mean" or "crit", default "mean"
         Returns:
-            array of R200mean [Mpc/h]
+            array of R200 [Mpc/h]
         """
-        rho_mean = self.cosmology.mean_density(self.get("zcos"))
-        r200 = (3./(800*np.pi) * self.get("mass") / rho_mean)**(1./3)
+        if rho_type == "crit":
+            rho = self.cosmology.critical_density(self.get("zcos"))
+        elif rho_type == "mean":
+            rho = self.cosmology.mean_density(self.get("zcos"))
+        r200 = (3./(800*np.pi) * self.get("mass") / rho)**(1./3)
         
         if comoving:
             return r200 * (1.+self.get("zcos"))
@@ -66,6 +78,19 @@ class HaloCatalogue(Catalogue):
             array of halo concentrations
         """
         conc = 2.16 * self.get("r200") / self.get("rvmax")
+
+        return np.clip(conc, 0.1, 1e4)
+    
+    
+    def get_concentration_rs(self):
+        """
+        Returns NFW concentration of each halo, calculated from
+        R200 and Rs
+
+        Returns:
+            array of halo concentrations
+        """
+        conc = self.get("r200") / self.get("rs")
 
         return np.clip(conc, 0.1, 1e4)
 
@@ -105,6 +130,151 @@ class HaloCatalogue(Catalogue):
             conc_mod[ind[np.argsort(conc[ind])]] = 10**np.sort(logc_new)
 
         return conc_mod
+    
+class FlamingoSnapshot(HaloCatalogue):
+    """
+    Flamingo halo catalogue from simulation snapshot
+
+    Args:
+        file_name: The path to the hdf5 file containing the halos, SOAP-style (or Peregrinus style, if misc/halo_type is "peregrinus")
+        path_config_filename: The path to the path_config file saying the path to everything
+    """
+    def __init__(self, file_name, path_config_filename):
+        cosmology = CosmologyFlamingo(path_config_filename)
+        self.cosmology = cosmology
+
+        with open(path_config_filename, "r") as file:
+            path_config = yaml.safe_load(file)
+        with open(path_config["Paths"]["params_path"], "r") as file:
+            used_params = yaml.safe_load(file)
+
+        h = used_params["Cosmology"]["h"]
+        L = path_config["Params"]["L"]
+        self.box_size = L * h
+        snapshot_redshift = path_config["Params"]["redshift"]
+        particles = path_config["Params"]["particles"]
+
+        try:
+            halo_type = path_config["Misc"]["halo_type"]
+        except:
+            halo_type = "soap"
+
+        UnitMass_in_cgs = float(used_params["InternalUnitSystem"]["UnitMass_in_cgs"])
+        UnitMass_in_Msol_h = UnitMass_in_cgs * h / 1.98841e33
+
+        # read SOAP halo catalogue file
+
+        # self.so_density is not needed MAYBE; double-check
+        # What is needed:
+        # halo_cat.get("mass")
+        # halo_cat.cut
+        # halo_cat.init
+
+        halo_cat = h5py.File(file_name, "r")
+        # We use the 200_crit definition of spherical overdensity, for consistency and because that's what we have
+        # 200_mean is what was originally expected by the code; get_r200 has been modified to make it crit instead
+        # Concentration was not always consistent in Abacus, but consistent here
+        # ("spherical density definition is a function of epoch; value is stored relative to the mean cosmic density") - abacus docs
+        self.so_density = 200
+
+        if particles:
+            print("ERROR: Particles not yet supported with Flamingo halo catalogues")
+
+        # Using the 200_crit definition, in accordance with the above
+        # pos: looking for "center of mass position of largest L2 subhalo"
+        # vel: looking for Center of mass vel of the largest L2 subhalo
+        # mass: looking for number of particles in the halo * particle mass
+        # rvmax: looking for Radius of max circular velocity, relative to the L2 center
+        if halo_type == "soap":
+            is_not_subhalo = np.array(halo_cat["InputHalos"]["HBTplus"]["Depth"]) == 0
+            rvmax_threshold = halo_cat["BoundSubhalo"]["MaximumDarkMatterCircularVelocityRadius"].attrs["Mask Threshold"]
+            is_above_rvmax_threshold = np.array(halo_cat["SO"]["200_crit"]["NumberOfDarkMatterParticles"]) >= rvmax_threshold
+            is_nonzero_rvmax = np.array(halo_cat["BoundSubhalo"]["MaximumDarkMatterCircularVelocityRadius"]) != 0
+            # for some reason, some of the halos above the particle threshold for calculating rvmax are still 0 rvmax
+
+            relevant_field_halos = np.logical_and(is_above_rvmax_threshold, is_not_subhalo)
+            relevant_field_halos = np.logical_and(relevant_field_halos, is_nonzero_rvmax)
+            
+            pos = np.array(halo_cat["SO"]["200_crit"]["CentreOfMass"])[relevant_field_halos] * h
+            vel = np.array(halo_cat["SO"]["200_crit"]["CentreOfMassVelocity"])[relevant_field_halos]
+            mass = np.array(halo_cat["SO"]["200_crit"]["DarkMatterMass"])[relevant_field_halos] * UnitMass_in_Msol_h
+            rvmax = np.array(halo_cat["BoundSubhalo"]["MaximumDarkMatterCircularVelocityRadius"])[relevant_field_halos] * h
+
+            rho = self.cosmology.critical_density(snapshot_redshift)
+            r200c = (3./(800*np.pi) * mass / rho)**(1./3) * (1.+snapshot_redshift)
+            conc = 2.16 * r200c / rvmax
+            M200m, r200m, c200m = mass_defs.changeMassDefinition(mass, conc, snapshot_redshift, "200c", "200m", profile="nfw")
+            self._quantities = {
+                'pos':   pos,
+                'vel':   vel,
+                'mass':  M200m,
+                'rvmax': rvmax
+            }
+        elif halo_type == "peregrinus":
+            is_not_subhalo = np.array(halo_cat["Subhalos"]["Rank"]) == 0
+            # Some (field) halos have 0 mass and 0 radius; these are the orphan halos that were ejected from their host halo; we discard these
+            is_not_0mass = np.array(halo_cat["Subhalos"]["BoundM200Crit"]) != 0
+            relevant_field_halos = np.logical_and(is_not_0mass, is_not_subhalo)
+            self._quantities = {
+                'pos':   np.array(halo_cat["Subhalos"]["ComovingAveragePosition"])[relevant_field_halos] * h,
+                'vel':   np.array(halo_cat["Subhalos"]["PhysicalAverageVelocity"])[relevant_field_halos],
+                'mass':  np.array(halo_cat["Subhalos"]["BoundM200Crit"])[relevant_field_halos] * UnitMass_in_Msol_h,
+                'rvmax': np.array(halo_cat["Subhalos"]["RmaxComoving"])[relevant_field_halos] * h
+            }
+
+        self.size = len(self._quantities['mass'][...])
+
+        self.add("zcos", np.ones(self.size)*snapshot_redshift)
+    
+    def __read_property(self, halo_cat, prop):
+        # read property from halo file
+        #return halo_cat["Data/%s"%prop][...]
+    
+        print(prop)
+    
+        return np.array(halo_cat.halos[prop])
+    
+    def __read_header(self, halo_cat, prop):
+        print(prop)
+        return halo_cat.header[prop]
+    
+    
+    # def get_r200(self, comoving=True):
+    #     """
+    #     Returns RXmean of each halo, where X is the spherical overdensity (HARD CODED TO 200)
+
+    #     Args:
+    #         comoving: (optional) if True convert to comoving distance
+    #     Returns:
+    #         array of RXmean [Mpc/h]
+    #     """
+    #     rho_mean = self.cosmology.mean_density(self.get("zcos"))
+    #     r200 = (3./(4*self.so_density*np.pi) * self.get("mass") / rho_mean)**(1./3)
+        
+    #     if comoving:
+    #         return r200 * (1.+self.get("zcos"))
+    #     else:
+    #         return r200
+    def get_r200(self, comoving=True, rho_type="crit"):
+        """
+        Returns R200 of each halo
+
+        Args:
+            comoving: (optional) if True convert to comoving distance
+            rho_type: (optional) "mean" or "crit", default "crit"
+        Returns:
+            array of R200 [Mpc/h]
+        """
+        if rho_type == "crit":
+            rho = self.cosmology.critical_density(self.get("zcos"))
+        elif rho_type == "mean":
+            rho = self.cosmology.mean_density(self.get("zcos"))
+        r200 = (3./(800*np.pi) * self.get("mass") / rho)**(1./3)
+        
+        if comoving:
+            return r200 * (1.+self.get("zcos"))
+        else:
+            return r200
 
     
     
@@ -513,111 +683,6 @@ class FlamingoCatalogue(HaloCatalogue):
         else:
             return r200
         
-class FlamingoSnapshot(HaloCatalogue):
-    """
-    Flamingo halo catalogue from simulation snapshot
-
-    Args:
-        file_name: The path to the hdf5 file containing the halos
-        path_config_filename: The path to the path_config file saying the path to everything
-        snapshot_redshift: The redshift of the snapshot
-        particles: use particles if True, NFW if False. Default is False; TRUE IS NOT YET SUPPORTED
-    """
-    def __init__(self, file_name, path_config_filename, snapshot_redshift,
-                 particles=False):
-        self.cosmology = CosmologyFlamingo(path_config_filename)
-
-        with open(path_config_filename, "r") as file:
-            path_config = yaml.safe_load(file)
-
-        L = path_config["Params"]["L"]
-        self.box_size = L
-        try:
-            halo_type = path_config["Misc"]["halo_type"]
-        except:
-            halo_type = "soap"
-
-        with open(path_config["Paths"]["params_path"], "r") as file:
-            used_params = yaml.safe_load(file)
-        UnitMass_in_cgs = float(used_params["InternalUnitSystem"]["UnitMass_in_cgs"])
-        UnitMass_in_Msol = UnitMass_in_cgs / 1.98841e33
-
-        # read SOAP halo catalogue file
-
-        # self.so_density is not needed MAYBE; double-check
-        # What is needed:
-        # halo_cat.get("mass")
-        # halo_cat.cut
-        # halo_cat.init
-
-        halo_cat = h5py.File(file_name, "r")
-        # We use the 200_mean definition of spherical overdensity, to best match what's used by Abacus
-        # ("spherical density definition is a function of epoch; value is stored relative to the mean cosmic density")
-        self.so_density = 200
-
-        if particles:
-            print("ERROR: Particles not yet supported with Flamingo halo catalogues")
-
-        # Using the 200_mean definition, in accordance with the above
-        # pos: looking for "center of mass position of largest L2 subhalo"
-        # vel: looking for Center of mass vel of the largest L2 subhalo
-        # mass: looking for number of particles in the halo * particle mass
-        # rvmax: looking for Radius of max circular velocity, relative to the L2 center, stored as the ratio to r100 condensed to [0,30000]
-        # id: ID of the halo (assuming they are stored in numerical order)
-        if halo_type == "soap":
-            self._quantities = {
-                'pos':   np.array(halo_cat["SO"]["200_mean"]["CentreOfMass"]),
-                'vel':   np.array(halo_cat["SO"]["200_mean"]["CentreOfMassVelocity"]),
-                'mass':  np.array(halo_cat["SO"]["200_mean"]["DarkMatterMass"]) * UnitMass_in_Msol,
-                'rvmax': np.array(halo_cat["BoundSubhaloProperties"]["MaximumCircularVelocityRadius"]) / np.array(halo_cat["SO"]["50_crit"]["SORadius"]),
-                'id':    np.arange(len(halo_cat["SO"]["200_mean"]["DarkMatterMass"]))
-                # TODO: Check if the maximum circ velocity radius can be done via SO
-                #'r200': halo_cat["Subhalos"]["BoundR200CritComoving"]
-            }
-        elif halo_type == "peregrinus":
-            self._quantities = {
-                'pos':   np.array(halo_cat["Subhalos"]["ComovingAveragePosition"]),
-                'vel':   np.array(halo_cat["Subhalos"]["PhysicalAverageVelocity"]),
-                'mass':  np.array(halo_cat["Subhalos"]["BoundM200Crit"]) * UnitMass_in_Msol,
-                'rvmax': np.array(halo_cat["Subhalos"]["RmaxComoving"]) / np.array(halo_cat["Subhalos"]["REncloseComoving"]),
-                'id':    np.arange(len(halo_cat["Subhalos"]["BoundM200Crit"]))
-                # TODO: Check if the maximum circ velocity radius can be done via SO
-                #'r200': halo_cat["Subhalos"]["BoundR200CritComoving"]
-            }
-
-        self.size = len(self._quantities['mass'][...])
-
-        self.add("zcos", np.ones(self.size)*snapshot_redshift)
-    
-    def __read_property(self, halo_cat, prop):
-        # read property from halo file
-        #return halo_cat["Data/%s"%prop][...]
-    
-        print(prop)
-    
-        return np.array(halo_cat.halos[prop])
-    
-    def __read_header(self, halo_cat, prop):
-        print(prop)
-        return halo_cat.header[prop]
-    
-    
-    def get_r200(self, comoving=True):
-        """
-        Returns RXmean of each halo, where X is the spherical overdensity (~300 for z=0.2 snapshots)
-
-        Args:
-            comoving: (optional) if True convert to comoving distance
-        Returns:
-            array of RXmean [Mpc/h]
-        """
-        rho_mean = self.cosmology.mean_density(self.get("zcos"))
-        r200 = (3./(4*self.so_density*np.pi) * self.get("mass") / rho_mean)**(1./3)
-        
-        if comoving:
-            return r200 * (1.+self.get("zcos"))
-        else:
-            return r200
         
         
 class AbacusSnapshotUnresolved(HaloCatalogue):
