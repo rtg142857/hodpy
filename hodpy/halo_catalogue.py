@@ -199,6 +199,7 @@ class FlamingoSnapshot(HaloCatalogue):
             vel = np.array(halo_cat["SO"]["200_crit"]["CentreOfMassVelocity"])[relevant_field_halos]
             mass = np.array(halo_cat["SO"]["200_crit"]["DarkMatterMass"])[relevant_field_halos] * UnitMass_in_Msol_h
             rvmax = np.array(halo_cat["BoundSubhalo"]["MaximumDarkMatterCircularVelocityRadius"])[relevant_field_halos] * h
+            id = np.arange(len(pos))
 
             rho = self.cosmology.critical_density(snapshot_redshift)
             r200c = (3./(800*np.pi) * mass / rho)**(1./3) * (1.+snapshot_redshift)
@@ -208,7 +209,8 @@ class FlamingoSnapshot(HaloCatalogue):
                 'pos':   pos,
                 'vel':   vel,
                 'mass':  M200m,
-                'rvmax': rvmax
+                'rvmax': rvmax,
+                'id': id
             }
         elif halo_type == "peregrinus":
             is_not_subhalo = np.array(halo_cat["Subhalos"]["Rank"]) == 0
@@ -219,7 +221,8 @@ class FlamingoSnapshot(HaloCatalogue):
                 'pos':   np.array(halo_cat["Subhalos"]["ComovingAveragePosition"])[relevant_field_halos] * h,
                 'vel':   np.array(halo_cat["Subhalos"]["PhysicalAverageVelocity"])[relevant_field_halos],
                 'mass':  np.array(halo_cat["Subhalos"]["BoundM200Crit"])[relevant_field_halos] * UnitMass_in_Msol_h,
-                'rvmax': np.array(halo_cat["Subhalos"]["RmaxComoving"])[relevant_field_halos] * h
+                'rvmax': np.array(halo_cat["Subhalos"]["RmaxComoving"])[relevant_field_halos] * h,
+                'id': np.arange(len(np.array(halo_cat["Subhalos"]["RmaxComoving"])[relevant_field_halos]))
             }
 
         self.size = len(self._quantities['mass'][...])
