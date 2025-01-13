@@ -4,8 +4,8 @@
 
 #SBATCH --ntasks 1 # The number of cores you need...
 #SBATCH -J make_mock #Give it something meaningful.
-#SBATCH -o logs/make_mock
-#SBATCH -e logs/make_mock_error
+#SBATCH -o logs/out_makemock
+#SBATCH -e logs/err_makemock
 #SBATCH -p cosma8 #or some other partition, e.g. cosma, cosma8, etc.
 #SBATCH -A dp004
 #SBATCH --exclusive

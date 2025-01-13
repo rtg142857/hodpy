@@ -4,8 +4,8 @@
 
 #SBATCH --ntasks 1 # The number of cores you need...
 #SBATCH -J get_mass_function #Give it something meaningful.
-#SBATCH -o logs/mass_function
-#SBATCH -e logs/mass_function_error
+#SBATCH -o logs/out_mass_function
+#SBATCH -e logs/err_mass_function
 #SBATCH -p cosma8 #or some other partition, e.g. cosma, cosma8, etc.
 #SBATCH -A dp004
 #SBATCH --exclusive
