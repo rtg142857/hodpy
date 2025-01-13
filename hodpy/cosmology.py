@@ -281,43 +281,37 @@ class CosmologyFlamingo(Cosmology):
         config = configparser.ConfigParser()
         config.read_file(open(ic_file_path))
 
+        args = {"h": run_params["Cosmology"]["h"], "Omega_cdm": run_params["Cosmology"]["Omega_cdm"], "Omega_b": run_params["Cosmology"]["Omega_b"]}
 
-        h = run_params["Cosmology"]["h"]
-        Omega_cdm = run_params["Cosmology"]["Omega_cdm"]
-        Omega_b = run_params["Cosmology"]["Omega_b"]
-
-        engine="class"
+        args["engine"] = "class"
 
         try:
-            n_s = float(config.get("cosmology", "n_s"))
-        except:
-            n_s = None
+            args["n_s"] = float(config.get("cosmology", "n_s"))
+        except Exception:
+            pass
 
         try:
-            A_s = float(config.get("cosmology", "A_s"))
-        except:
-            A_s = None
+            args["A_s"] = float(config.get("cosmology", "A_s"))
+        except Exception:
+            pass
 
         try:
-            w0_fld = run_params["Cosmology"]["w_0"]
-        except:
-            w0_fld = None
+            args["w0_fld"] = run_params["Cosmology"]["w_0"]
+        except Exception:
+            pass
 
         try:
-            wa_fld = run_params["Cosmology"]["w_a"]
-        except:
-            wa_fld = None
+            args["wa_fld"] = run_params["Cosmology"]["w_a"]
+        except Exception:
+            pass
 
         try:
             M_nu_eV = run_params["Cosmology"]["M_nu_eV"]
             M_nu_list = M_nu_eV.split(",")
-            N_ncdm = [float(i) for i in M_nu_list]
-        except:
-            N_ncdm = None
+            args["N_ncdm"] = [float(i) for i in M_nu_list]
+        except Exception:
+            pass
 
-        cosmo_cosmoprimo = Cosmology_cosmoprimo(h=h, Omega_cdm=Omega_cdm, Omega_b=Omega_b, engine=engine,
-                                                n_s = n_s, A_s = A_s,
-                                                w0_fld=w0_fld, wa_fld=wa_fld,
-                                                N_ncdm = N_ncdm)
+        cosmo_cosmoprimo = Cosmology_cosmoprimo(**args)
 
         super().__init__(cosmo_cosmoprimo)
