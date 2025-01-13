@@ -31,14 +31,20 @@ def measure_mass_function_box(path_config_filename, soap_path, bin_size=0.01):
     """
     with open(path_config_filename, "r") as file:
         path_config = yaml.safe_load(file)
-    L = path_config["Params"]["L"]
+    with open(path_config["Paths"]["params_path"], "r") as file:
+        run_params = yaml.safe_load(file)
+    h = run_params["Cosmology"]["h"]
+    L = path_config["Params"]["L"] * h
     try:
         halo_type = path_config["Misc"]["halo_type"]
     except:
         halo_type = "soap"
     with open(path_config["Paths"]["params_path"], "r") as file:
         used_params = yaml.safe_load(file)
+    
     UnitMass_in_cgs = float(used_params["InternalUnitSystem"]["UnitMass_in_cgs"])
+    cosmology = CosmologyFlamingo(path_config_filename)
+    log_mass_min = path_config["Params"]["log_mass_min"]
 
     #########################################
 
@@ -47,9 +53,9 @@ def measure_mass_function_box(path_config_filename, soap_path, bin_size=0.01):
 
         input_file = soap_path
         if halo_type == "peregrinus":
-            log_mass = read_hbt_log_mass(input_file, UnitMass_in_cgs)
+            log_mass = read_hbt_log_mass(input_file, UnitMass_in_cgs, h)
         else:
-            log_mass = read_soap_log_mass(input_file, UnitMass_in_cgs)
+            log_mass = read_soap_log_mass(input_file, UnitMass_in_cgs, h, redshift, cosmology)
         
         print("Read log mass from file", flush=True)
 
@@ -68,9 +74,9 @@ def measure_mass_function_box(path_config_filename, soap_path, bin_size=0.01):
             input_file = soap_path + file_name
 
             if halo_type == "peregrinus":
-                log_mass[file_number] = read_hbt_log_mass(input_file, UnitMass_in_cgs)
+                log_mass[file_number] = read_hbt_log_mass(input_file, UnitMass_in_cgs, h)
             else:
-                log_mass[file_number] = read_soap_log_mass(input_file, UnitMass_in_cgs)
+                log_mass[file_number] = read_soap_log_mass(input_file, UnitMass_in_cgs, h, redshift, cosmology)
 
             #halo_cat = CompaSOHaloCatalog(input_file, cleaned=True, fields=['N'])
             #m_par = halo_cat.header["ParticleMassHMsun"]
@@ -86,7 +92,7 @@ def measure_mass_function_box(path_config_filename, soap_path, bin_size=0.01):
     print("Getting mass function")
 
     # get number densities in mass bins  
-    mass_bins = np.arange(10,16,bin_size)
+    mass_bins = np.arange(log_mass_min,16,bin_size)
     mass_binc = mass_bins[:-1]+bin_size/2.
     hist, bins = np.histogram(log_mass, bins=mass_bins)
     n_halo = hist/bin_size/L**3
@@ -109,7 +115,6 @@ def get_mass_functions(path_config_filename, mass_function_file, snapshot_redshi
     soap_path = path_config["Paths"]["soap_path"]
     snapshot_redshift = path_config["Params"]["redshift"]
     #output_list_path = path_config["Paths"]["output_list_path"]
-
 
     print("z = %.3f"%snapshot_redshift)
     logM, n = measure_mass_function_box(path_config_filename, soap_path, bin_size=0.01)
