@@ -13,7 +13,7 @@ from hodpy.hod_bgs_flamingo import HOD_BGS
 from hodpy.colour import ColourDESI
 from hodpy import lookup
 
-def main(input_file, output_file, path_config_filename, photsys, snapshot_redshift=0.0, mag_faint=-18):
+def main(input_file, output_file, path_config_filename, photsys, file_number=0, snapshot_redshift=0.0, mag_faint=-18):
     '''
     Create a cubic box BGS mock
     '''
@@ -21,7 +21,6 @@ def main(input_file, output_file, path_config_filename, photsys, snapshot_redshi
     warnings.filterwarnings("ignore")
     
     # to be safe, re-make the magnitude lookup tables on first loop iteration
-    file_number = int(input_file.split(".")[1])
     replace_lookup = file_number==0
     
     # create halo catalogue
@@ -100,7 +99,7 @@ if __name__ == "__main__":
 
     if soap_path[-5:] == ".hdf5": # Just one input soap file
         output_file = output_path + "_BGS_box_%s.0.fits"%(photsys)
-        main(soap_path, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
+        main(soap_path, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=0, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
 
     else: # input soap directory
         soap_files_list = os.listdir(soap_path)
@@ -113,7 +112,7 @@ if __name__ == "__main__":
             print("Populating galaxies for snapshot "+str(file_number), flush=True)
             output_file = output_path + "_BGS_box_%s.%03d.fits"%(photsys, file_number)
 
-            main(input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
+            main(input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=file_number, snapshot_redshift=snapshot_redshift, mag_faint=mag_faint)
 
         print("Joining output files into a single file...")
         # join the outputs into a single file
