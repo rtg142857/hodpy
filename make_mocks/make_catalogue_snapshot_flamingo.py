@@ -30,7 +30,7 @@ def main(input_file, output_file, path_config_filename, photsys, file_number=0, 
     gal_cat  = BGSGalaxyCatalogueSnapshotFlamingo(halo_cat, path_config_filename)
 
     # use hods to populate galaxy catalogue
-    hod = HOD_BGS(path_config_filename, #redshift_evolution=True, photsys=photsys, mag_faint=mag_faint, mag_faint=type="absolute",
+    hod = HOD_BGS(path_config_filename, single_redshift=True, #redshift_evolution=True, photsys=photsys, mag_faint=mag_faint, mag_faint=type="absolute",
                   replace_central_lookup=replace_lookup, replace_satellite_lookup=replace_lookup)
     gal_cat.add_galaxies(hod)
 

@@ -102,12 +102,13 @@ class HOD_BGS(HOD):
     """
 
     def __init__(self, path_config_filename, #cosmo, photsys, mag_faint_type='apparent', mag_faint=20.2, mag_faint_extrapolate=-17, z0=0.2,
+                 single_redshift,
                  hod_param_file=lookup.flamingo_hod_parameters,
                  redshift_evolution=False, mass_function=None, kcorr=None,
                  slide_file=None, central_lookup_file=None, 
                  satellite_lookup_file=None, target_lf_file=None,
                  replace_central_lookup=False, replace_satellite_lookup=False,
-                 replace_slide_file=False, mag_faint_type=None, mag_faint=None):
+                 replace_slide_file=False, mag_faint_type=None, mag_faint=None,):
         with open(path_config_filename, "r") as file:
             path_config = yaml.safe_load(file)
         
@@ -147,7 +148,7 @@ class HOD_BGS(HOD):
         # initialize mass function. Use default AbacusSummit MF if none provided
         # this is needed to calculate galaxy number densities from the HOD
         if mass_function is None:
-            mass_function = MassFunctionFlamingo(path_config_filename)
+            mass_function = MassFunctionFlamingo(path_config_filename, single_redshift=single_redshift)
         self.mf = mass_function
         
         # initialize target luminosity function

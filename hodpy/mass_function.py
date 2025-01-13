@@ -272,16 +272,19 @@ class MassFunctionFlamingo(object):
                    If none is provided, will read the file specified in 
                    lookup.abacus_mass_function. Default value is None
     """
-    def __init__(self, path_config_filename, mf_file=None):
+    def __init__(self, path_config_filename, single_redshift, mf_file=None):
         with open(path_config_filename, "r") as file:
             path_config = yaml.safe_load(file)
         label = path_config["Labels"]["sim_label"]
 
-        output_list_path = path_config["Paths"]["output_list_path"] # file with list of redshifts
-        max_redshift = path_config["Params"]["max_redshift"]
-        snapshot_redshifts = np.genfromtxt(output_list_path, comments="#")
-        snapshot_redshifts = snapshot_redshifts[snapshot_redshifts <= max_redshift]
-        num_redshifts = len(snapshot_redshifts)
+        if single_redshift:
+            num_redshifts = 1
+        else:
+            output_list_path = path_config["Paths"]["output_list_path"] # file with list of redshifts
+            max_redshift = path_config["Params"]["max_redshift"]
+            snapshot_redshifts = np.genfromtxt(output_list_path, comments="#")
+            snapshot_redshifts = snapshot_redshifts[snapshot_redshifts <= max_redshift]
+            num_redshifts = len(snapshot_redshifts)
         
         self.cosmology = CosmologyFlamingo(path_config_filename)
         
