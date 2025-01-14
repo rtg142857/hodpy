@@ -229,6 +229,32 @@ class FlamingoSnapshot(HaloCatalogue):
 
         self.add("zcos", np.ones(self.size)*snapshot_redshift)
     
+    def add_unresolved_tracers(self, file_path, path_config_filename):
+        """
+        Add unresolved tracers from a single file to the halo catalogue.
+        
+        Args:
+            file_path: Path to the unresolved tracer file
+            path_config_filename: Path to the path_config file saying the path to everything
+        """
+        RVMAX_DEFAULT = 0.0001 # hopefully shouldn't matter because it's just for positioning satellites
+        ID_DEFAULT = -1
+
+        halo_cat = h5py.File(file_path, "r")
+        pos = halo_cat["position"]
+        vel = halo_cat["velocity"]
+        mass = halo_cat["mass"]
+        rvmax = np.full(len(pos), RVMAX_DEFAULT)
+        id = np.full(len(pos), ID_DEFAULT)
+        np.append(self._quantities["pos"], pos)
+        np.append(self._quantities["vel"], vel)
+        np.append(self._quantities["mass"], mass)
+        np.append(self._quantities["rvmax"], rvmax)
+        np.append(self._quantities["id"], id)
+
+        self.size = len(self._quantities['mass'][...])
+        self._quantities["zcos"] = np.ones(self.size)*self._quantities["zcos"][0]
+    
     def __read_property(self, halo_cat, prop):
         # read property from halo file
         #return halo_cat["Data/%s"%prop][...]

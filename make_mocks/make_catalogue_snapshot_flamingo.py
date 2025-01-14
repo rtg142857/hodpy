@@ -13,7 +13,7 @@ from hodpy.hod_bgs_flamingo import HOD_BGS
 from hodpy.colour import ColourDESI
 from hodpy import lookup
 
-def main(input_file, output_file, path_config_filename, photsys, file_number=0, mag_faint=-18):
+def main(input_file, output_file, path_config_filename, photsys, single_input, file_number=0, mag_faint=-18):
     '''
     Create a cubic box BGS mock
     '''
@@ -22,9 +22,21 @@ def main(input_file, output_file, path_config_filename, photsys, file_number=0, 
     
     # to be safe, re-make the magnitude lookup tables on first loop iteration
     replace_lookup = file_number==0
+
+    with open(path_config_filename, "r") as file:
+        path_config = yaml.safe_load(file)
+    tracer_output_dir = path_config["tracer_output_path"]
     
     # create halo catalogue
     halo_cat = FlamingoSnapshot(input_file, path_config_filename=path_config_filename)
+    if single_input:
+        tracer_output = os.listdir(tracer_output_dir)
+        unresolved_tracer_output = [tracer_output_dir + file for file in tracer_output if "unresolved" in file]
+        for tracer_file in unresolved_tracer_output:
+            halo_cat.add_unresolved_tracers(tracer_file, path_config_filename=path_config_filename)
+    else:
+        tracer_file = tracer_output_dir + "galaxy_tracers_unresolved_"+file_number+".hdf5"
+        halo_cat.add_unresolved_tracers(tracer_file, path_config_filename=path_config_filename)
 
     # empty galaxy catalogue
     gal_cat  = BGSGalaxyCatalogueSnapshotFlamingo(halo_cat, path_config_filename)
@@ -99,7 +111,7 @@ if __name__ == "__main__":
 
     if soap_path[-5:] == ".hdf5": # Just one input soap file
         output_file = output_path + "_BGS_box_%s.0.fits"%(photsys)
-        main(soap_path, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=0, mag_faint=mag_faint)
+        main(soap_path, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=0, mag_faint=mag_faint, single_input=True)
 
     else: # input soap directory
         soap_files_list = os.listdir(soap_path)
@@ -112,7 +124,7 @@ if __name__ == "__main__":
             print("Populating galaxies for snapshot "+str(file_number), flush=True)
             output_file = output_path + "_BGS_box_%s.%03d.fits"%(photsys, file_number)
 
-            main(input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=file_number, mag_faint=mag_faint)
+            main(input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=file_number, mag_faint=mag_faint, single_input=False)
 
         print("Joining output files into a single file...")
         # join the outputs into a single file
