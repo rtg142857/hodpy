@@ -39,7 +39,7 @@ def main(input_file, output_file, path_config_filename, photsys, single_input, f
             halo_cat.add_unresolved_tracers(tracer_file, path_config_filename=path_config_filename)
     else:
         print("Adding unresolved tracers...", flush=True)
-        tracer_file = tracer_output_dir + "galaxy_tracers_unresolved_"+file_number+".hdf5"
+        tracer_file = tracer_output_dir + "galaxy_tracers_unresolved_"+str(file_number)+".hdf5"
         halo_cat.add_unresolved_tracers(tracer_file, path_config_filename=path_config_filename)
 
     # empty galaxy catalogue
