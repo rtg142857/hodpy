@@ -28,13 +28,17 @@ def main(input_file, output_file, path_config_filename, photsys, single_input, f
     tracer_output_dir = path_config["tracer_output_path"]
     
     # create halo catalogue
+    print("Making halo catalogue", flush=True)
     halo_cat = FlamingoSnapshot(input_file, path_config_filename=path_config_filename)
     if single_input:
+        print("Adding unresolved tracers...")
         tracer_output = os.listdir(tracer_output_dir)
         unresolved_tracer_output = [tracer_output_dir + file for file in tracer_output if "unresolved" in file]
         for tracer_file in unresolved_tracer_output:
+            print(tracer_file, flush=True)
             halo_cat.add_unresolved_tracers(tracer_file, path_config_filename=path_config_filename)
     else:
+        print("Adding unresolved tracers...", flush=True)
         tracer_file = tracer_output_dir + "galaxy_tracers_unresolved_"+file_number+".hdf5"
         halo_cat.add_unresolved_tracers(tracer_file, path_config_filename=path_config_filename)
 
