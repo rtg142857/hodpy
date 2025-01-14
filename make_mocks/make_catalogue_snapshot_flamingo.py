@@ -25,7 +25,7 @@ def main(input_file, output_file, path_config_filename, photsys, single_input, f
 
     with open(path_config_filename, "r") as file:
         path_config = yaml.safe_load(file)
-    tracer_output_dir = path_config["tracer_output_path"]
+    tracer_output_dir = path_config["Paths"]["tracer_output_path"]
     
     # create halo catalogue
     print("Making halo catalogue", flush=True)
