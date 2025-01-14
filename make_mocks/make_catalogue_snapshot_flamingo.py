@@ -114,7 +114,7 @@ if __name__ == "__main__":
     output_path = "./"+output_directory+"/"
 
     if soap_path[-5:] == ".hdf5": # Just one input soap file
-        output_file = output_path + "_BGS_box_%s.0.fits"%(photsys)
+        output_file = output_path + "BGS_box_%s.0.fits"%(photsys)
         main(soap_path, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=0, mag_faint=mag_faint, single_input=True)
 
     else: # input soap directory
@@ -125,10 +125,13 @@ if __name__ == "__main__":
         for file_name in soap_files_list:
             input_file = soap_path + file_name
             file_number = int(file_name.split(".")[1])
-            print("Populating galaxies for snapshot "+str(file_number), flush=True)
-            output_file = output_path + "_BGS_box_%s.%03d.fits"%(photsys, file_number)
-
-            main(input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=file_number, mag_faint=mag_faint, single_input=False)
+            output_file = output_path + "BGS_box_%s.%03d.fits"%(photsys, file_number)
+        
+            if os.path.isfile(output_file):
+                print("File "+str(file_number)+" already made, skipping")
+            else:
+                print("Populating galaxies for snapshot "+str(file_number), flush=True)
+                main(input_file, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=file_number, mag_faint=mag_faint, single_input=False)
 
         print("Joining output files into a single file...")
         # join the outputs into a single file
