@@ -32,7 +32,7 @@ def main(input_file, output_file, path_config_filename, photsys, single_input, f
     halo_cat = FlamingoSnapshot(input_file, path_config_filename=path_config_filename)
     if single_input:
         print("Adding unresolved tracers...")
-        tracer_output = os.listdir(tracer_output_dir)
+        tracer_output = sorted(os.listdir(tracer_output_dir))
         unresolved_tracer_output = [tracer_output_dir + file for file in tracer_output if "unresolved" in file]
         for tracer_file in unresolved_tracer_output:
             print(tracer_file, flush=True)
@@ -68,7 +68,7 @@ def join_files(output_path, photsys):
     '''
     Combine the cubic box outputs into a single file
     '''
-    output_files_list = os.listdir(output_path)
+    output_files_list = sorted(os.listdir(output_path))
     for input_file in output_files_list:
         print(input_file)
         input_file_number = input_file.split(".")[1]
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         main(soap_path, output_file, path_config_filename=path_config_filename, photsys=photsys, file_number=0, mag_faint=mag_faint, single_input=True)
 
     else: # input soap directory
-        soap_files_list = os.listdir(soap_path)
+        soap_files_list = sorted(os.listdir(soap_path))
         if halo_type == "peregrinus":
             soap_files_list = [file for file in soap_files_list if "Catalogue" in file]
         
