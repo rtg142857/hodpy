@@ -79,7 +79,7 @@ def join_files(output_path, photsys):
 
         #table_i = table_i['R_MAG_ABS', 'G_R_REST', 'HALO_MASS', 'cen', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'FILE_NUM', 'HALO_ID']
 
-        if input_file_number==0:
+        if int(input_file_number)==0:
             table = table_i
         else:
             table = vstack([table, table_i])
