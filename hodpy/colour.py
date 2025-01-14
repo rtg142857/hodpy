@@ -310,7 +310,7 @@ class ColourDESI(Colour):
     def __initialize_central_fraction_interpolator(self, central_fraction_lookup_file, 
                                                 replace_central_fraction_lookup_file):
         # Fraction of central galaxies is calculated using HODs
-        magnitudes = np.arange(-23,-10, 0.5)
+        magnitudes = np.arange(-23,-15, 0.5)
         redshifts = np.arange(0,0.81,0.1)
         
         try:
