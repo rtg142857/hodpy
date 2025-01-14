@@ -323,10 +323,12 @@ class ColourDESI(Colour):
         except IOError:
         
             fcen = np.zeros((len(magnitudes),len(redshifts)))
+            print("Making central fraction interpolator...")
         
             for i in range(len(magnitudes)):
-                print(i)
+                print("magnitude: " + str(magnitudes[i]))
                 for j in range(len(redshifts)):
+                    print("redshift:" +str(redshifts[j]))
                     magnitude = np.array([magnitudes[i],])
                     redshift = np.array([redshifts[j],])
 
