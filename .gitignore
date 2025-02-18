@@ -99,3 +99,11 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Other
+path_configs/*.yml
+make_mocks/logs/*
+tools/logs/*
+tools/*.hdf5
+make_mocks/*output_files*/*.fits
+make_mocks/old_output_files/*

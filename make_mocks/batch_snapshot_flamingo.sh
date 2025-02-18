@@ -9,7 +9,7 @@
 #SBATCH -p cosma8 #or some other partition, e.g. cosma, cosma8, etc.
 #SBATCH -A dp004
 #SBATCH --exclusive
-#SBATCH -t 60
+#SBATCH -t 240
 #SBATCH --mail-type=ALL # notifications for job done & fail
 #SBATCH --mail-user=tlrt88@durham.ac.uk #PLEASE PUT YOUR EMAIL ADDRESS HERE (without the <>)
 
