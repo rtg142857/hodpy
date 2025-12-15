@@ -199,6 +199,7 @@ class FlamingoSnapshot(HaloCatalogue):
             vel = np.array(halo_cat["SO"]["200_crit"]["CentreOfMassVelocity"])[relevant_field_halos]
             mass = np.array(halo_cat["SO"]["200_crit"]["DarkMatterMass"])[relevant_field_halos] * UnitMass_in_Msol_h
             rvmax = np.array(halo_cat["BoundSubhalo"]["MaximumDarkMatterCircularVelocityRadius"])[relevant_field_halos] * h
+            # TODO: Change this to use an actual halo ID for soap
             id = np.arange(len(pos))
 
             rho = self.cosmology.critical_density(snapshot_redshift)
@@ -222,7 +223,8 @@ class FlamingoSnapshot(HaloCatalogue):
                 'vel':   np.array(halo_cat["Subhalos"]["PhysicalAverageVelocity"])[relevant_field_halos],
                 'mass':  np.array(halo_cat["Subhalos"]["BoundM200Crit"])[relevant_field_halos] * UnitMass_in_Msol_h,
                 'rvmax': np.array(halo_cat["Subhalos"]["RmaxComoving"])[relevant_field_halos] * h,
-                'id': np.arange(len(np.array(halo_cat["Subhalos"]["RmaxComoving"])[relevant_field_halos]))
+                'id':    np.array(halo_cat["Subhalos"]["TrackId"][relevant_field_halos])
+                #'id':    np.arange(len(np.array(halo_cat["Subhalos"]["RmaxComoving"])[relevant_field_halos]))
             }
 
         self.size = len(self._quantities['mass'][...])
