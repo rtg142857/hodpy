@@ -308,7 +308,7 @@ class CosmologyFlamingo(Cosmology):
         try:
             M_nu_eV = run_params["Cosmology"]["M_nu_eV"]
             M_nu_list = M_nu_eV.split(",")
-            args["N_ncdm"] = [float(i) for i in M_nu_list]
+            args["m_ncdm"] = [float(i) for i in M_nu_list]
         except Exception:
             pass
 
