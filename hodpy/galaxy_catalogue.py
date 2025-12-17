@@ -191,6 +191,9 @@ class GalaxyCatalogue(Catalogue):
         # random line of sight velocity relative to halo
         vel_rel = vel_disp*np.random.normal(loc=0.0, scale=1.0, size=self.size)
 
+        is_sat = self.get("is_sat")
+        vel_rel[~is_sat] = 0 # Central velocities don't get any velocity dispersion
+
         return vel_los_halo + vel_rel
 
 
