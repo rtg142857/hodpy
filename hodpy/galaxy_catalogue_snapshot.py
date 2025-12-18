@@ -61,6 +61,9 @@ class GalaxyCatalogueSnapshot(GalaxyCatalogue):
         for i in range(3):
             vel_rel[:,i] = vel_disp*np.random.normal(loc=0.0, scale=1.0, 
                                                      size=self.size)
+            
+        is_sat = self.get("is_sat")
+        vel_rel[~is_sat] = 0 # Central velocities don't get any velocity dispersion
 
         return vel_halo + vel_rel
 
